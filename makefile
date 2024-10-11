@@ -5,11 +5,13 @@ CC := clang -c -std=c17 -Wall -Wextra -pedantic -Werror
 SRCS := $(shell find $(SRC) -name '*.c')
 OBJS := $(SRCS:%=$(TARGET)/%.o)
 
-#$(TARGET)/lox: $(OBJS)
-#	clang $(TARGET)/lox.o -L$(TARGET) -ltokens.o -o $(TARGET)/lox
+$(TARGET)/lox: $(TARGET)/lox.c.o $(TARGET)/tokens.c.o
+	clang $(TARGET)/lox.c.o -L$(TARGET) -ltokens.c.o -o $(TARGET)/lox
 
+$(TARGET)/tokens.c.o: $(SRC)/tokens.c
+	$(CC) $< -o $@
 
-$(TARGET)/%.c.o: $(SRC)/%.c $(TARGET)
+$(TARGET)/lox.c.o: $(SRC)/lox.c
 	$(CC) $< -o $@
 
 $(TARGET):
