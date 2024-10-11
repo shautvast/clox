@@ -18,5 +18,5 @@ $(TARGET):
 	mkdir -p $(TARGET)
 	
 clean:
-	rm -r $(TARGET)/*
+	rm -rf $(TARGET)/*
 
