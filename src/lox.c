@@ -113,14 +113,14 @@ void add_token(char* source, int line, TokenList* token_list, enum TokenType typ
     tokenlist_add(token_list, token);
 }
 
-void advance(int* pos){
+char advance(char * source, int* pos){
+    char c = source[*pos];
     (*pos) +=1;
+    return c;
 }
 
 void scan_token(char* source, int line, int start, int* current_pos, TokenList* token_list){
-    char c = source[*current_pos];
-
-    advance(current_pos);
+    char c = advance(source, current_pos);
 
     switch (c){
         case '(': add_token(source, line, token_list, LEFT_PAREN, start, *current_pos); break;
