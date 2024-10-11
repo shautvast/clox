@@ -35,30 +35,30 @@ int run_file(char* filename){
         return EXIT_FAILURE;
     }
     char line[255];
-    
+
     char* content = malloc(1);
     if (content == NULL){
         puts("Out of memory");
         return EXIT_FAILURE;
     }
     content[0] = '\0';
-    
-        
+
+
     while (fgets(line, sizeof(line), file)){
         content = realloc(content, strlen(content) + strlen(line) + 1 );
         if (content == NULL){
             return EXIT_FAILURE;
         }
         strcat(content, line);
-    }        
-    
+    }
+
     fclose(file);
-   
+
     run(content);
 
     // FREE UP
     free(content);
-    
+
     if (had_error){
         return 65;
     }
@@ -72,18 +72,18 @@ void run_prompt(void){
     for (;;){
         printf(">");
         char* r = fgets(line, 255, stdin);
-        
+
         if (r == NULL){
             break;
-        } 
+        }
 
-        run(line);
+        int len =(int)strlen(line);
+        run(substring(line, 1, len-1));
         had_error = false;
     }
 }
 
 void run(char* source){
-    printf("%s", source);
     scan_tokens(source);
 }
 
@@ -94,8 +94,9 @@ void scan_tokens(char* source){
 
     TokenList token_list;
     tokenlist_init(&token_list);
+    int len = (int)strlen(source);
 
-    while (current < (int)strlen(source)) {
+    while (current < len) {
         start = current;
         scan_token(source, line, start, &current, &token_list);
     }
@@ -108,13 +109,19 @@ void add_token(char* source, int line, TokenList* token_list, enum TokenType typ
     token.lexeme = substring(source, start, current_pos);
     token.literal = NULL;
     token.line = line;
-       
+
     tokenlist_add(token_list, token);
+}
+
+void advance(int* pos){
+    (*pos) +=1;
 }
 
 void scan_token(char* source, int line, int start, int* current_pos, TokenList* token_list){
     char c = source[*current_pos];
-    (*current_pos) += 1;
+
+    advance(current_pos);
+
     switch (c){
         case '(': add_token(source, line, token_list, LEFT_PAREN, start, *current_pos); break;
         case ')': add_token(source, line, token_list, RIGHT_PAREN, start, *current_pos); break;
@@ -123,8 +130,9 @@ void scan_token(char* source, int line, int start, int* current_pos, TokenList* 
         case ',': add_token(source, line, token_list, COMMA, start, *current_pos); break;
         case '.': add_token(source, line, token_list, DOT, start, *current_pos); break;
         case '+': add_token(source, line, token_list, PLUS, start, *current_pos); break;
-        case ';': add_token(source, line, token_list, SEMICOLON, start, *current_pos); break;
-        case '/': add_token(source, line, token_list, SLASH, start, *current_pos); break;
+        case '-': add_token(source, line, token_list, MINUS, start, *current_pos); break;
+
+        default: error(line, "Unexpected character."); break;
     }
 }
 
@@ -133,7 +141,7 @@ void error(int line, char* message){
 }
 
 void report(int line, char* where, char* message){
-    printf("[Line %i] Error %s : %s\n", line, where, message);
+    printf("*[Line %i] Error %s : %s\n", line, where, message);
     had_error = true;
 }
 
@@ -145,7 +153,7 @@ char* substring(char* string, int position, int length){
     }
 
     int c;
-    for (c=0; c< length; c++){
+    for (c=0; c < length; c+=1){
         *(ptr+c) = *(string+position-1);
         string += sizeof(char);
     }
@@ -153,4 +161,3 @@ char* substring(char* string, int position, int length){
 
     return ptr;
 }
-    

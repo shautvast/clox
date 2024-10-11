@@ -74,10 +74,10 @@ Token* tokenlist_get(TokenList* list, int index){
 void tokenlist_print(TokenList* tokenlist){
     for (int i=0; i< tokenlist->size; i++){
         printf("%s, ", token_name(tokenlist_get(tokenlist, i)));
+        printf("\n");
     }
 }
 
 void tokenlist_free(TokenList* list){
     free(list->tokens);
 }
-
