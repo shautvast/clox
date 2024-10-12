@@ -11,6 +11,11 @@ void error(char *message);
 void report(char *where, char *message);
 bool is_at_end(void);
 bool match(char expected);
+char peek(void);
+char peek_next(void);
+void string(void);
+bool is_digit(char c);
+void number(void);
 
 bool had_error = false;
 int current_pos = -1;
@@ -47,6 +52,16 @@ void add_token(enum TokenType type) {
   token.type = type;
   token.lexeme = substring(source, start, current_pos);
   token.literal = NULL;
+  token.line = current_line;
+
+  tokenlist_add(&token_list, token);
+}
+
+void add_token_with_literal(enum TokenType type, char *literal) {
+  Token token;
+  token.type = type;
+  token.lexeme = substring(source, start, current_pos);
+  token.literal = literal;
   token.line = current_line;
 
   tokenlist_add(&token_list, token);
@@ -97,10 +112,64 @@ void scan_token(void) {
   case '<':
     add_token(match('=') ? LESS_EQUAL : LESS);
     break;
+  case '/':
+    if (match('/')) {
+      while (peek() != '\n' && !is_at_end()) {
+        advance();
+      }
+    } else {
+      add_token(SLASH);
+    }
+    break;
+  case ' ':
+  case '\t':
+  case '\r':
+    break;
+  case '\n':
+    current_line += 1;
+    break;
+  case '"':
+    string();
+    break;
   default:
-    error("Unexpected character.");
+    if (is_digit(c)) {
+      number();
+    } else {
+      error("Unexpected character.");
+    }
     break;
   }
+}
+
+void number(void) {
+  while (is_digit(peek()))
+    advance();
+  if (peek() == '.' && is_digit((peek_next())))
+    advance();
+  while (is_digit(peek()))
+    advance();
+  add_token_with_literal(NUMBER,
+                         substring(source, start + 1, current_pos - start));
+}
+
+bool is_digit(char c) { return c >= '0' && c <= '9'; }
+
+void string(void) {
+  while (peek() != '"' && !is_at_end()) {
+    if (peek() == '\n')
+      current_line += 1;
+    advance();
+  }
+
+  if (is_at_end()) {
+    error("Unterminated string.");
+    return;
+  }
+
+  advance();
+
+  char *string = substring(source, start + 2, current_pos - start - 2);
+  add_token_with_literal(STRING, string);
 }
 
 bool match(char expected) {
@@ -112,6 +181,20 @@ bool match(char expected) {
   }
   current_pos += 1;
   return true;
+}
+
+char peek_next(void) {
+  if (current_pos + 1 >= (int)strlen(source)) {
+    return '\0';
+  }
+  return source[current_pos + 1];
+}
+
+char peek(void) {
+  if (is_at_end()) {
+    return '\0';
+  }
+  return source[current_pos];
 }
 
 bool is_at_end(void) { return current_pos >= (int)strlen(source); }
