@@ -2,18 +2,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include "scanner.h"
 #include "tokens.h"
+#include "utils.h"
 
 int run_file(char* file);
 void run_prompt(void);
-void run(char* source);
-void scan_tokens(char* source);
-void scan_token(char* source, int line, int start, int* current_pos, TokenList* token_list);
-void error(int line, char* nessage);
-void report(int line, char* where, char* message);
-char* substring(char* string, int position, int length);
-
-static bool had_error = false;
+ScanResult run(char* source);
 
 int main(int argc, char* argv[]){
     if (argc>2){
@@ -27,8 +22,8 @@ int main(int argc, char* argv[]){
     return EXIT_SUCCESS;
 }
 
-
 int run_file(char* filename){
+
     FILE* file = fopen(filename, "r");
     if (file == NULL){
         printf("unable to open file '%s'\n", filename);
@@ -54,14 +49,16 @@ int run_file(char* filename){
 
     fclose(file);
 
-    run(content);
+    ScanResult scan_result = run(content);
 
     // FREE UP
     free(content);
 
-    if (had_error){
+    if (scan_result.had_error){
         return 65;
     }
+
+    tokenlist_print(&scan_result.token_list);
 
     return EXIT_SUCCESS;
 }
@@ -78,86 +75,12 @@ void run_prompt(void){
         }
 
         int len =(int)strlen(line);
-        run(substring(line, 1, len-1));
-        had_error = false;
+        ScanResult scan_result = run(substring(line, 1, len-1));
+
+        tokenlist_print(&scan_result.token_list);
     }
 }
 
-void run(char* source){
-    scan_tokens(source);
-}
-
-void scan_tokens(char* source){
-    int current = 0;
-    int start = 0;
-    int line = 1;
-
-    TokenList token_list;
-    tokenlist_init(&token_list);
-    int len = (int)strlen(source);
-
-    while (current < len) {
-        start = current;
-        scan_token(source, line, start, &current, &token_list);
-    }
-    tokenlist_print(&token_list);
-}
-
-void add_token(char* source, int line, TokenList* token_list, enum TokenType type, int start, int current_pos){
-    Token token;
-    token.type = type;
-    token.lexeme = substring(source, start, current_pos);
-    token.literal = NULL;
-    token.line = line;
-
-    tokenlist_add(token_list, token);
-}
-
-char advance(char * source, int* pos){
-    char c = source[*pos];
-    (*pos) +=1;
-    return c;
-}
-
-void scan_token(char* source, int line, int start, int* current_pos, TokenList* token_list){
-    char c = advance(source, current_pos);
-
-    switch (c){
-        case '(': add_token(source, line, token_list, LEFT_PAREN, start, *current_pos); break;
-        case ')': add_token(source, line, token_list, RIGHT_PAREN, start, *current_pos); break;
-        case '{': add_token(source, line, token_list, LEFT_BRACE, start, *current_pos); break;
-        case '}': add_token(source, line, token_list, RIGHT_BRACE, start, *current_pos); break;
-        case ',': add_token(source, line, token_list, COMMA, start, *current_pos); break;
-        case '.': add_token(source, line, token_list, DOT, start, *current_pos); break;
-        case '+': add_token(source, line, token_list, PLUS, start, *current_pos); break;
-        case '-': add_token(source, line, token_list, MINUS, start, *current_pos); break;
-
-        default: error(line, "Unexpected character."); break;
-    }
-}
-
-void error(int line, char* message){
-    report(line, "", message);
-}
-
-void report(int line, char* where, char* message){
-    printf("*[Line %i] Error %s : %s\n", line, where, message);
-    had_error = true;
-}
-
-char* substring(char* string, int position, int length){
-    char* ptr = malloc(length+1);
-    if (ptr == NULL) {
-        printf("out of memory");
-        exit(EXIT_FAILURE);
-    }
-
-    int c;
-    for (c=0; c < length; c+=1){
-        *(ptr+c) = *(string+position-1);
-        string += sizeof(char);
-    }
-    *(ptr+c) = '\0';
-
-    return ptr;
+ScanResult run(char* source){
+    return scan_tokens(source);
 }
