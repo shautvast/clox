@@ -16,6 +16,9 @@ char peek_next(void);
 void string(void);
 bool is_digit(char c);
 void number(void);
+bool is_alpha(char c);
+bool is_alphanumeric(char c);
+void identifier(void);
 
 bool had_error = false;
 int current_pos = -1;
@@ -23,6 +26,26 @@ int start = -1;
 int current_line = -1;
 char *source;
 TokenList token_list;
+
+static const enum TokenType *get_token(char *key) {
+  int low = 0;
+  int high = sizeof(keywords) / sizeof(Item);
+
+  while (low < high) {
+    int mid = (low + high) / 2;
+
+    int c = strcmp(keywords[mid].key, key);
+    if (c == 0) {
+      return &keywords[mid].value;
+    }
+    if (c < 0) {
+      low = mid + 1;
+    } else {
+      high = mid;
+    }
+  }
+  return NULL;
+}
 
 ScanResult scan_tokens(char *src) {
   current_pos = 0;
@@ -134,10 +157,27 @@ void scan_token(void) {
   default:
     if (is_digit(c)) {
       number();
+    } else if (is_alpha(c)) {
+      identifier();
     } else {
       error("Unexpected character.");
     }
     break;
+  }
+}
+
+void identifier(void) {
+  while (is_alphanumeric(peek())) {
+    advance();
+  }
+
+  char *text = substring(source, start + 1, current_pos - start);
+
+  const enum TokenType *tokentype = get_token(text);
+  if (tokentype == NULL) {
+    add_token(IDENTIFIER);
+  } else {
+    add_token(*tokentype);
   }
 }
 
@@ -196,6 +236,11 @@ char peek(void) {
   }
   return source[current_pos];
 }
+bool is_alpha(char c) {
+  return ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_');
+}
+
+bool is_alphanumeric(char c) { return is_alpha(c) || is_digit(c); }
 
 bool is_at_end(void) { return current_pos >= (int)strlen(source); }
 
