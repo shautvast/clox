@@ -1,7 +1,7 @@
 #ifndef TOKENS_H
 #define TOKENS_H
 
-enum TokenType {
+typedef enum {
   LEFT_PAREN,
   RIGHT_PAREN,
   LEFT_BRACE,
@@ -41,16 +41,9 @@ enum TokenType {
   VAR,
   WHILE,
   END_OF_FILE
-};
+} TokenType;
 
-typedef struct {
-  enum TokenType type;
-  char *lexeme;
-  void *literal;
-  int line;
-} Token;
-
-static inline const char *token_name(enum TokenType type) {
+static inline const char *token_name(TokenType type) {
   static const char *tokens[] = {
       "LEFT_PAREN", "RIGHT_PAREN",   "LEFT_BRACE", "RIGHT_BRACE", "COMMA",
       "DOT",        "MINUS",         "PLUS",       "SEMICOLON",   "SLASH",
@@ -65,6 +58,13 @@ static inline const char *token_name(enum TokenType type) {
 }
 
 typedef struct {
+  TokenType type;
+  char *lexeme;
+  void *literal;
+  int line;
+} Token;
+
+typedef struct TokenList {
   Token *tokens;
   int size;
   int capacity;

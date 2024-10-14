@@ -6,46 +6,26 @@
 #include <stdlib.h>
 #include <string.h>
 
-void scan_token(void);
-void error(char *message);
-void report(char *where, char *message);
-bool is_at_end(void);
-bool match(char expected);
-char peek(void);
-char peek_next(void);
-void string(void);
-bool is_digit(char c);
-void number(void);
-bool is_alpha(char c);
-bool is_alphanumeric(char c);
-void identifier(void);
+static void scan_token(void);
+static void error(char *message);
+static void report(char *where, char *message);
+static bool is_at_end(void);
+static bool match(char expected);
+static char peek(void);
+static char peek_next(void);
+static void string(void);
+static bool is_digit(char c);
+static void number(void);
+static bool is_alpha(char c);
+static bool is_alphanumeric(char c);
+static void identifier(void);
 
-bool had_error = false;
-int current_pos = -1;
-int start = -1;
-int current_line = -1;
-char *source;
-TokenList token_list;
-
-static const enum TokenType *get_token(char *key) {
-  int low = 0;
-  int high = sizeof(keywords) / sizeof(Item);
-
-  while (low < high) {
-    int mid = (low + high) / 2;
-
-    int c = strcmp(keywords[mid].key, key);
-    if (c == 0) {
-      return &keywords[mid].value;
-    }
-    if (c < 0) {
-      low = mid + 1;
-    } else {
-      high = mid;
-    }
-  }
-  return NULL;
-}
+static bool had_error = false;
+static int current_pos = -1;
+static int start = -1;
+static int current_line = -1;
+static char *source;
+static TokenList token_list;
 
 ScanResult scan_tokens(char *src) {
   current_pos = 0;
@@ -70,7 +50,7 @@ ScanResult scan_tokens(char *src) {
   return scan_result;
 }
 
-void add_token(enum TokenType type) {
+static void add_token(TokenType type) {
   Token token;
   token.type = type;
   token.lexeme = substring(source, start, current_pos);
@@ -80,7 +60,7 @@ void add_token(enum TokenType type) {
   tokenlist_add(&token_list, token);
 }
 
-void add_token_with_literal(enum TokenType type, char *literal) {
+static void add_token_with_literal(TokenType type, char *literal) {
   Token token;
   token.type = type;
   token.lexeme = substring(source, start, current_pos);
@@ -90,12 +70,12 @@ void add_token_with_literal(enum TokenType type, char *literal) {
   tokenlist_add(&token_list, token);
 }
 
-char advance(void) {
+static char advance(void) {
   char c = source[current_pos++];
   return c;
 }
 
-void scan_token(void) {
+static void scan_token(void) {
   char c = advance();
 
   switch (c) {
@@ -166,14 +146,14 @@ void scan_token(void) {
   }
 }
 
-void identifier(void) {
+static void identifier(void) {
   while (is_alphanumeric(peek())) {
     advance();
   }
 
   char *text = substring(source, start + 1, current_pos - start);
 
-  const enum TokenType *tokentype = get_token(text);
+  const TokenType *tokentype = get_keyword_token(text);
   if (tokentype == NULL) {
     add_token(IDENTIFIER);
   } else {
@@ -181,7 +161,7 @@ void identifier(void) {
   }
 }
 
-void number(void) {
+static void number(void) {
   while (is_digit(peek()))
     advance();
   if (peek() == '.' && is_digit((peek_next())))
@@ -212,7 +192,7 @@ void string(void) {
   add_token_with_literal(STRING, string);
 }
 
-bool match(char expected) {
+static bool match(char expected) {
   if (is_at_end()) {
     return false;
   }
@@ -223,30 +203,30 @@ bool match(char expected) {
   return true;
 }
 
-char peek_next(void) {
+static char peek_next(void) {
   if (current_pos + 1 >= (int)strlen(source)) {
     return '\0';
   }
   return source[current_pos + 1];
 }
 
-char peek(void) {
+static char peek(void) {
   if (is_at_end()) {
     return '\0';
   }
   return source[current_pos];
 }
-bool is_alpha(char c) {
+static bool is_alpha(char c) {
   return ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_');
 }
 
-bool is_alphanumeric(char c) { return is_alpha(c) || is_digit(c); }
+static bool is_alphanumeric(char c) { return is_alpha(c) || is_digit(c); }
 
-bool is_at_end(void) { return current_pos >= (int)strlen(source); }
+static bool is_at_end(void) { return current_pos >= (int)strlen(source); }
 
-void error(char *message) { report("", message); }
+static void error(char *message) { report("", message); }
 
-void report(char *where, char *message) {
+static void report(char *where, char *message) {
   printf("*[Line %i] Error %s : %s\n", current_line, where, message);
   had_error = true;
 }

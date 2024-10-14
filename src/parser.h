@@ -1,0 +1,1 @@
+typedef struct Binary Binary;

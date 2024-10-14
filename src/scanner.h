@@ -14,7 +14,7 @@ ScanResult scan_tokens(char *source);
 
 typedef struct {
   const char *key;
-  const enum TokenType value;
+  const TokenType value;
 } Item;
 
 static const Item keywords[] = {
@@ -23,4 +23,23 @@ static const Item keywords[] = {
     {"or", OR},     {"print", PRINT}, {"return", RETURN}, {"super", SUPER},
     {"this", THIS}, {"true", TRUE},   {"var", VAR},       {"while", WHILE}};
 
+inline static const TokenType *get_keyword_token(char *key) {
+  int low = 0;
+  int high = sizeof(keywords) / sizeof(Item);
+
+  while (low < high) {
+    int mid = (low + high) / 2;
+
+    int c = strcmp(keywords[mid].key, key);
+    if (c == 0) {
+      return &keywords[mid].value;
+    }
+    if (c < 0) {
+      low = mid + 1;
+    } else {
+      high = mid;
+    }
+  }
+  return NULL;
+}
 #endif
