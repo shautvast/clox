@@ -1,6 +1,8 @@
 #ifndef TOKENS_H
 #define TOKENS_H
 
+#include <string>
+
 typedef enum {
   LEFT_PAREN,
   RIGHT_PAREN,
@@ -59,25 +61,9 @@ static inline const char *token_name(TokenType type) {
 
 typedef struct {
   TokenType type;
-  char *lexeme;
+  std::string lexeme;
   void *literal;
   int line;
 } Token;
-
-typedef struct TokenList {
-  Token *tokens;
-  int size;
-  int capacity;
-} TokenList;
-
-void tokenlist_init(TokenList *list);
-
-void tokenlist_add(TokenList *list, Token value);
-
-Token *tokenlist_get(TokenList *list, int index);
-
-void tokenlist_print(TokenList *tokenlist);
-
-void tokenlist_free(TokenList *list);
 
 #endif

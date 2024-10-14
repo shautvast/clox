@@ -1,14 +1,13 @@
-#include "scanner.h"
-#include "tokens.h"
-#include "utils.h"
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "scanner.hpp"
+#include "tokens.hpp"
+#include <cstdbool>
+#include <iostream>
+#include <list>
+#include <string>
 
 static void scan_token(void);
-static void error(char *message);
-static void report(char *where, char *message);
+static void error(std::string message);
+static void report(std::string where, std::string message);
 static bool is_at_end(void);
 static bool match(char expected);
 static char peek(void);
@@ -18,25 +17,22 @@ static bool is_digit(char c);
 static void number(void);
 static bool is_alpha(char c);
 static bool is_alphanumeric(char c);
-static void identifier(void);
+static void identifier();
 
 static bool had_error = false;
-static int current_pos = -1;
+static size_t current_pos = -1;
 static int start = -1;
 static int current_line = -1;
-static char *source;
-static TokenList token_list;
+static std::string source;
+static std::list<Token> token_list;
 
-ScanResult scan_tokens(char *src) {
+ScanResult scan_tokens(std::string src) {
   current_pos = 0;
   start = 0;
   current_line = 1;
   source = src;
 
-  tokenlist_init(&token_list);
-  int len = (int)strlen(source);
-
-  while (current_pos < len) {
+  while (current_pos < source.length()) {
     start = current_pos;
     scan_token();
   }
@@ -53,25 +49,25 @@ ScanResult scan_tokens(char *src) {
 static void add_token(TokenType type) {
   Token token;
   token.type = type;
-  token.lexeme = substring(source, start, current_pos);
+  token.lexeme = source.substr(start, current_pos);
   token.literal = NULL;
   token.line = current_line;
 
-  tokenlist_add(&token_list, token);
+  token_list.push_front(token);
 }
 
-static void add_token_with_literal(TokenType type, char *literal) {
+static void add_token_with_literal(TokenType type, std::string literal) {
   Token token;
   token.type = type;
-  token.lexeme = substring(source, start, current_pos);
-  token.literal = literal;
+  token.lexeme = source.substr(start, current_pos);
+  token.literal = static_cast<void *>(&literal);
   token.line = current_line;
 
-  tokenlist_add(&token_list, token);
+  token_list.push_front(token);
 }
 
 static char advance(void) {
-  char c = source[current_pos++];
+  char c = source.at(current_pos++);
   return c;
 }
 
@@ -151,7 +147,7 @@ static void identifier(void) {
     advance();
   }
 
-  char *text = substring(source, start + 1, current_pos - start);
+  std::string text = source.substr(start + 1, current_pos - start);
 
   const TokenType *tokentype = get_keyword_token(text);
   if (tokentype == NULL) {
@@ -168,8 +164,7 @@ static void number(void) {
     advance();
   while (is_digit(peek()))
     advance();
-  add_token_with_literal(NUMBER,
-                         substring(source, start + 1, current_pos - start));
+  add_token_with_literal(NUMBER, source.substr(start + 1, current_pos - start));
 }
 
 bool is_digit(char c) { return c >= '0' && c <= '9'; }
@@ -188,7 +183,7 @@ void string(void) {
 
   advance();
 
-  char *string = substring(source, start + 2, current_pos - start - 2);
+  std::string string = source.substr(start + 2, current_pos - start - 2);
   add_token_with_literal(STRING, string);
 }
 
@@ -204,7 +199,7 @@ static bool match(char expected) {
 }
 
 static char peek_next(void) {
-  if (current_pos + 1 >= (int)strlen(source)) {
+  if (current_pos + 1 >= source.length()) {
     return '\0';
   }
   return source[current_pos + 1];
@@ -222,11 +217,12 @@ static bool is_alpha(char c) {
 
 static bool is_alphanumeric(char c) { return is_alpha(c) || is_digit(c); }
 
-static bool is_at_end(void) { return current_pos >= (int)strlen(source); }
+static bool is_at_end(void) { return current_pos >= source.length(); }
 
-static void error(char *message) { report("", message); }
+static void error(std::string message) { report("", message); }
 
-static void report(char *where, char *message) {
-  printf("*[Line %i] Error %s : %s\n", current_line, where, message);
+static void report(std::string where, std::string message) {
+  std::cout << "*[Line " << current_line << "] Error " << where << " : "
+            << message << "\n";
   had_error = true;
 }
