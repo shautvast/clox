@@ -59,7 +59,7 @@ ScanResult run(std::string source) {
 void print_tokens(std::list<Token> *list) {
   for (std::list<Token>::iterator token = list->begin(); token != list->end();
        ++token) {
-    std::cout << token->to_string() << "(" << token->get_literal() << "), ";
+    std::cout << token->to_string() << "(" << token->literal << "), ";
   }
 
   std::cout << "\n";

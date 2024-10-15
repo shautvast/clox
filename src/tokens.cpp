@@ -15,11 +15,5 @@ std::string Token::to_string() {
       "NIL",         "OR",         "PRINT",         "RETURN",     "SUPER",
       "THIS",        "TRUE",       "VAR",           "WHILE"};
 
-  return tokens[(int)tokentype]; // TODO shift the enum int values
+  return tokens[(int)tokentype];
 }
-
-std::string Token::get_lexeme() { return lexeme; }
-
-std::string Token::get_literal() { return literal; }
-
-int Token::get_line() { return line; }

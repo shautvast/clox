@@ -3,12 +3,10 @@
 #include <string>
 
 class Token {
-private:
+public:
   std::string lexeme;
   std::string literal;
   int line;
-
-public:
   enum Type {
     END_OF_FILE = 0,
     LEFT_PAREN = 1,
@@ -51,9 +49,6 @@ public:
     WHILE = 38,
   } tokentype;
 
-  std::string get_lexeme();
-  std::string get_literal();
-  int get_line();
   std::string to_string();
 
   Token(Token::Type _tokentype, std::string _lexeme, std::string _literal,
