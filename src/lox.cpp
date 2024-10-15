@@ -51,7 +51,10 @@ void run_prompt(void) {
   }
 }
 
-ScanResult run(std::string source) { return scan_tokens(source); }
+ScanResult run(std::string source) {
+  Scanner *scanner = new Scanner(source);
+  return scanner->scan_tokens();
+}
 
 void print_tokens(std::list<Token> *list) {
   for (std::list<Token>::iterator token = list->begin(); token != list->end();

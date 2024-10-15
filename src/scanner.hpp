@@ -1,5 +1,4 @@
-#ifndef SCANNER_H
-#define SCANNER_H
+#pragma once
 
 #include "tokens.hpp"
 #include <cstdbool>
@@ -11,7 +10,35 @@ typedef struct {
   std::list<Token> token_list;
 } ScanResult;
 
-ScanResult scan_tokens(std::string source);
+class Scanner {
+private:
+  bool had_error;
+  size_t current_pos;
+  int start;
+  int current_line;
+  std::string source;
+  std::list<Token> token_list;
+
+public:
+  Scanner(std::string s);
+  ScanResult scan_tokens();
+  void add_token(TokenType type);
+  void add_token_with_literal(TokenType type, std::string literal);
+  char advance();
+  void scan_token();
+  void identifier();
+  void number();
+  bool is_digit(char c);
+  void string();
+  bool match(char expected);
+  char peek_next();
+  char peek();
+  bool is_alpha(char c);
+  bool is_alphanumeric(char c);
+  bool is_at_end(void);
+  void error(std::string message);
+  void report(std::string where, std::string message);
+};
 
 typedef struct {
   const std::string key;
@@ -43,4 +70,3 @@ inline static const TokenType *get_keyword_token(std::string key) {
   }
   return NULL;
 }
-#endif

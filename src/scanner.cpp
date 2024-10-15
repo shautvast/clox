@@ -5,33 +5,11 @@
 #include <list>
 #include <string>
 
-static void scan_token(void);
-static void error(std::string message);
-static void report(std::string where, std::string message);
-static bool is_at_end(void);
-static bool match(char expected);
-static char peek(void);
-static char peek_next(void);
-static void string(void);
-static bool is_digit(char c);
-static void number(void);
-static bool is_alpha(char c);
-static bool is_alphanumeric(char c);
-static void identifier();
+Scanner::Scanner(std::string s)
+    : had_error(false), current_pos(0), start(0), current_line(1), source(s),
+      token_list(std::list<Token>()) {}
 
-static bool had_error = false;
-static size_t current_pos = -1;
-static int start = -1;
-static int current_line = -1;
-static std::string source;
-static std::list<Token> token_list;
-
-ScanResult scan_tokens(std::string src) {
-  current_pos = 0;
-  start = 0;
-  current_line = 1;
-  source = src;
-
+ScanResult Scanner::scan_tokens() {
   while (current_pos < source.length()) {
     start = current_pos;
     scan_token();
@@ -41,12 +19,10 @@ ScanResult scan_tokens(std::string src) {
   scan_result.token_list = token_list;
   scan_result.had_error = had_error;
 
-  // tokenlist_print(&scan_result.token_list);
-
   return scan_result;
 }
 
-static void add_token(TokenType type) {
+void Scanner::add_token(TokenType type) {
   Token token;
   token.type = type;
   token.lexeme = source.substr(start, current_pos);
@@ -56,7 +32,7 @@ static void add_token(TokenType type) {
   token_list.push_front(token);
 }
 
-static void add_token_with_literal(TokenType type, std::string literal) {
+void Scanner::add_token_with_literal(TokenType type, std::string literal) {
   Token token;
   token.type = type;
   token.lexeme = source.substr(start, current_pos);
@@ -66,12 +42,12 @@ static void add_token_with_literal(TokenType type, std::string literal) {
   token_list.push_front(token);
 }
 
-static char advance(void) {
+char Scanner::advance() {
   char c = source.at(current_pos++);
   return c;
 }
 
-static void scan_token(void) {
+void Scanner::scan_token() {
   char c = advance();
 
   switch (c) {
@@ -142,7 +118,7 @@ static void scan_token(void) {
   }
 }
 
-static void identifier(void) {
+void Scanner::identifier() {
   while (is_alphanumeric(peek())) {
     advance();
   }
@@ -157,7 +133,7 @@ static void identifier(void) {
   }
 }
 
-static void number(void) {
+void Scanner::number() {
   while (is_digit(peek()))
     advance();
   if (peek() == '.' && is_digit((peek_next())))
@@ -167,9 +143,9 @@ static void number(void) {
   add_token_with_literal(NUMBER, source.substr(start + 1, current_pos - start));
 }
 
-bool is_digit(char c) { return c >= '0' && c <= '9'; }
+bool Scanner::is_digit(char c) { return c >= '0' && c <= '9'; }
 
-void string(void) {
+void Scanner::string() {
   while (peek() != '"' && !is_at_end()) {
     if (peek() == '\n')
       current_line += 1;
@@ -187,7 +163,7 @@ void string(void) {
   add_token_with_literal(STRING, string);
 }
 
-static bool match(char expected) {
+bool Scanner::match(char expected) {
   if (is_at_end()) {
     return false;
   }
@@ -198,30 +174,31 @@ static bool match(char expected) {
   return true;
 }
 
-static char peek_next(void) {
+char Scanner::peek_next() {
   if (current_pos + 1 >= source.length()) {
     return '\0';
   }
   return source[current_pos + 1];
 }
 
-static char peek(void) {
+char Scanner::peek() {
   if (is_at_end()) {
     return '\0';
   }
   return source[current_pos];
 }
-static bool is_alpha(char c) {
+
+bool Scanner::is_alpha(char c) {
   return ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_');
 }
 
-static bool is_alphanumeric(char c) { return is_alpha(c) || is_digit(c); }
+bool Scanner::is_alphanumeric(char c) { return is_alpha(c) || is_digit(c); }
 
-static bool is_at_end(void) { return current_pos >= source.length(); }
+bool Scanner::is_at_end(void) { return current_pos >= source.length(); }
 
-static void error(std::string message) { report("", message); }
+void Scanner::error(std::string message) { report("", message); }
 
-static void report(std::string where, std::string message) {
+void Scanner::report(std::string where, std::string message) {
   std::cout << "*[Line " << current_line << "] Error " << where << " : "
             << message << "\n";
   had_error = true;

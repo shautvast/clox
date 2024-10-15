@@ -1,5 +1,4 @@
-#ifndef TOKENS_H
-#define TOKENS_H
+#pragma once
 
 #include <string>
 
@@ -65,5 +64,3 @@ typedef struct {
   void *literal;
   int line;
 } Token;
-
-#endif
