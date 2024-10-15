@@ -22,8 +22,8 @@ private:
 public:
   Scanner(std::string s);
   ScanResult scan_tokens();
-  void add_token(TokenType type);
-  void add_token_with_literal(TokenType type, std::string literal);
+  void add_token(Token::Type type);
+  void add_token_with_literal(Token::Type type, std::string literal);
   char advance();
   void scan_token();
   void identifier();
@@ -42,16 +42,20 @@ public:
 
 typedef struct {
   const std::string key;
-  const TokenType value;
+  const Token::Type value;
 } Item;
 
 static const Item keywords[] = {
-    {"and", AND},   {"class", CLASS}, {"else", ELSE},     {"false", FALSE},
-    {"for", FOR},   {"fun", FUN},     {"if", IF},         {"nil", NIL},
-    {"or", OR},     {"print", PRINT}, {"return", RETURN}, {"super", SUPER},
-    {"this", THIS}, {"true", TRUE},   {"var", VAR},       {"while", WHILE}};
+    {"and", Token::Type::AND},       {"class", Token::Type::CLASS},
+    {"else", Token::Type::ELSE},     {"false", Token::Type::FALSE},
+    {"for", Token::Type::FOR},       {"fun", Token::Type::FUN},
+    {"if", Token::Type::IF},         {"nil", Token::Type::NIL},
+    {"or", Token::Type::OR},         {"print", Token::Type::PRINT},
+    {"return", Token::Type::RETURN}, {"super", Token::Type::SUPER},
+    {"this", Token::Type::THIS},     {"true", Token::Type::TRUE},
+    {"var", Token::Type::VAR},       {"while", Token::Type::WHILE}};
 
-inline static const TokenType *get_keyword_token(std::string key) {
+inline static const Token::Type *get_keyword_token(std::string key) {
   int low = 0;
   int high = sizeof(keywords) / sizeof(Item);
 

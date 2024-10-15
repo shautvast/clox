@@ -22,23 +22,15 @@ ScanResult Scanner::scan_tokens() {
   return scan_result;
 }
 
-void Scanner::add_token(TokenType type) {
-  Token token;
-  token.type = type;
-  token.lexeme = source.substr(start, current_pos);
-  token.literal = NULL;
-  token.line = current_line;
-
+void Scanner::add_token(Token::Type type) {
+  Token token =
+      Token(type, source.substr(start, current_pos), "", current_line);
   token_list.push_front(token);
 }
 
-void Scanner::add_token_with_literal(TokenType type, std::string literal) {
-  Token token;
-  token.type = type;
-  token.lexeme = source.substr(start, current_pos);
-  token.literal = static_cast<void *>(&literal);
-  token.line = current_line;
-
+void Scanner::add_token_with_literal(Token::Type type, std::string literal) {
+  Token token =
+      Token(type, source.substr(start, current_pos), literal, current_line);
   token_list.push_front(token);
 }
 
@@ -52,40 +44,40 @@ void Scanner::scan_token() {
 
   switch (c) {
   case '(':
-    add_token(LEFT_PAREN);
+    add_token(Token::Type::LEFT_PAREN);
     break;
   case ')':
-    add_token(RIGHT_PAREN);
+    add_token(Token::Type::RIGHT_PAREN);
     break;
   case '{':
-    add_token(LEFT_BRACE);
+    add_token(Token::Type::LEFT_BRACE);
     break;
   case '}':
-    add_token(RIGHT_BRACE);
+    add_token(Token::Type::RIGHT_BRACE);
     break;
   case ',':
-    add_token(COMMA);
+    add_token(Token::Type::COMMA);
     break;
   case '.':
-    add_token(DOT);
+    add_token(Token::Type::DOT);
     break;
   case '+':
-    add_token(PLUS);
+    add_token(Token::Type::PLUS);
     break;
   case '-':
-    add_token(MINUS);
+    add_token(Token::Type::MINUS);
     break;
   case '!':
-    add_token(match('=') ? BANG_EQUAL : BANG);
+    add_token(match('=') ? Token::Type::BANG_EQUAL : Token::Type::BANG);
     break;
   case '=':
-    add_token(match('=') ? EQUAL_EQUAL : EQUAL);
+    add_token(match('=') ? Token::Type::EQUAL_EQUAL : Token::Type::EQUAL);
     break;
   case '>':
-    add_token(match('=') ? GREATER_EQUAL : GREATER);
+    add_token(match('=') ? Token::Type::GREATER_EQUAL : Token::Type::GREATER);
     break;
   case '<':
-    add_token(match('=') ? LESS_EQUAL : LESS);
+    add_token(match('=') ? Token::Type::LESS_EQUAL : Token::Type::LESS);
     break;
   case '/':
     if (match('/')) {
@@ -93,7 +85,7 @@ void Scanner::scan_token() {
         advance();
       }
     } else {
-      add_token(SLASH);
+      add_token(Token::Type::SLASH);
     }
     break;
   case ' ':
@@ -125,9 +117,9 @@ void Scanner::identifier() {
 
   std::string text = source.substr(start + 1, current_pos - start);
 
-  const TokenType *tokentype = get_keyword_token(text);
+  const Token::Type *tokentype = get_keyword_token(text);
   if (tokentype == NULL) {
-    add_token(IDENTIFIER);
+    add_token(Token::Type::IDENTIFIER);
   } else {
     add_token(*tokentype);
   }
@@ -140,7 +132,8 @@ void Scanner::number() {
     advance();
   while (is_digit(peek()))
     advance();
-  add_token_with_literal(NUMBER, source.substr(start + 1, current_pos - start));
+  add_token_with_literal(Token::Type::NUMBER,
+                         source.substr(start + 1, current_pos - start));
 }
 
 bool Scanner::is_digit(char c) { return c >= '0' && c <= '9'; }
@@ -159,8 +152,8 @@ void Scanner::string() {
 
   advance();
 
-  std::string string = source.substr(start + 2, current_pos - start - 2);
-  add_token_with_literal(STRING, string);
+  std::string string = source.substr(start + 1, current_pos - start - 2);
+  add_token_with_literal(Token::Type::STRING, string);
 }
 
 bool Scanner::match(char expected) {
