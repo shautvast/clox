@@ -3,7 +3,19 @@
 #include <cstdbool>
 #include <iostream>
 #include <list>
+#include <map>
 #include <string>
+
+static const std::map<std::string, Token::Type> keywords = {
+    {"and", Token::Type::AND},       {"class", Token::Type::CLASS},
+    {"else", Token::Type::ELSE},     {"false", Token::Type::FALSE},
+    {"for", Token::Type::FOR},       {"fun", Token::Type::FUN},
+    {"if", Token::Type::IF},         {"nil", Token::Type::NIL},
+    {"or", Token::Type::OR},         {"print", Token::Type::PRINT},
+    {"return", Token::Type::RETURN}, {"super", Token::Type::SUPER},
+    {"this", Token::Type::THIS},     {"true", Token::Type::TRUE},
+    {"var", Token::Type::VAR},       {"while", Token::Type::WHILE},
+};
 
 Scanner::Scanner(std::string s)
     : had_error(false), current_pos(0), start(0), current_line(1), source(s),
@@ -117,11 +129,11 @@ void Scanner::identifier() {
 
   std::string text = source.substr(start + 1, current_pos - start);
 
-  const Token::Type *tokentype = get_keyword_token(text);
-  if (tokentype == NULL) {
-    add_token(Token::Type::IDENTIFIER);
+  auto it = keywords.find(text);
+  if (it != keywords.end()) {
+    add_token(it->second);
   } else {
-    add_token(*tokentype);
+    add_token(Token::Type::IDENTIFIER);
   }
 }
 
