@@ -127,9 +127,9 @@ Expression *Parser::primary() {
     return new Literal(previous()->literal);
   }
   if (match(1, Token::Type::LEFT_PAREN)) {
-    Expression *e = expression();
+    Expression *expr = expression();
     consume(Token::Type::RIGHT_PAREN, "Expect ')'.");
-    return new Grouping(e);
+    return new Grouping(expr);
   }
   throw runtime_error("Expected an expression");
 }
@@ -159,7 +159,7 @@ Expression *Parser::term() {
   Expression *expr = factor();
   while (match(2, Token::Type::MINUS, Token::Type::PLUS)) {
     Token *op = previous();
-    Expression *right = unary();
+    Expression *right = factor();
     expr = new Binary(expr, op, right);
   }
   return expr;
