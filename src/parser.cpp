@@ -1,8 +1,10 @@
 #include "parser.hpp"
+#include <iostream>
+#include <memory>
 
 using namespace std;
 
-Expression::~Expression() {}
+Expression::~Expression() = default;
 
 // class Binary
 ExprType Binary::get_type() { return ExprType::Binary; }
@@ -15,11 +17,7 @@ string Binary::as_string() {
 Binary::Binary(Expression *_left, Token *_operator, Expression *_right)
     : left(_left), op(_operator), right(_right){};
 
-Binary::~Binary() {
-  delete left;
-  delete right;
-  delete op;
-}
+Binary::~Binary() = default;
 
 // class Grouping
 ExprType Grouping::get_type() { return ExprType::Grouping; }
@@ -28,7 +26,7 @@ string Grouping::as_string() { return "(" + expr->as_string() + ")"; }
 
 Grouping::Grouping(Expression *_expr) : expr(_expr){};
 
-Grouping::~Grouping() { delete expr; }
+Grouping::~Grouping() = default;
 
 // class Unary
 ExprType Unary::get_type() { return ExprType::Unary; }
@@ -40,10 +38,7 @@ string Unary::as_string() {
 Unary::Unary(Token *_operator, Expression *_right)
     : op(_operator), right(_right){};
 
-Unary::~Unary() {
-  delete right;
-  delete op;
-}
+Unary::~Unary() = default;
 
 // class Literal
 string Literal::as_string() {
@@ -114,7 +109,7 @@ Token *Parser::consume(Token::Type typ, string message) {
 }
 
 runtime_error Parser::error(Token token, string message) {
-  cout << token.as_string() << " " << message;
+  std::cout << token.as_string() << " " << message;
   return runtime_error(message); // TODO no exceptions
 }
 

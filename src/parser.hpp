@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tokens.hpp"
+#include <memory>
 #include <vector>
 
 enum class ExprType { Binary, Grouping, Unary, Literal, None };
@@ -10,16 +11,16 @@ using namespace std;
 /// Base class for expressions
 class Expression {
 public:
-  virtual ExprType get_type() = 0; // abstract, getter for tyoe
-  virtual string as_string() = 0;  // abstract, string rep for debugging
-  virtual ~Expression();           // destructor
-};                                 // namespace stdclass Expression
+  virtual ExprType get_type() = 0; // get the expression type
+  virtual string as_string() = 0;  // get string rep for debugging
+  virtual ~Expression();
+};
 
 /// An expression with two operands
 class Binary : public Expression {
-  Expression *left;
-  Token *op;
-  Expression *right;
+  unique_ptr<Expression> left;
+  unique_ptr<Token> op;
+  unique_ptr<Expression> right;
 
 public:
   ExprType get_type() override;
@@ -30,7 +31,7 @@ public:
 
 /// An expression between parentheses
 class Grouping : public Expression {
-  Expression *expr;
+  unique_ptr<Expression> expr;
 
 public:
   ExprType get_type() override;
@@ -41,8 +42,8 @@ public:
 
 /// An expression with one operand (operator is `-`  or `!`)
 class Unary : public Expression {
-  Token *op;
-  Expression *right;
+  unique_ptr<Token> op;
+  unique_ptr<Expression> right;
 
 public:
   ExprType get_type() override;
