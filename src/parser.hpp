@@ -12,54 +12,46 @@ class Expression {
 public:
   virtual ExprType get_type() = 0;     // abstract, getter for tyoe
   virtual std::string to_string() = 0; // abstract, string rep for debugging
-  virtual ~Expression() = 0;           // destructor
+  virtual ~Expression();               // destructor
 };
 
 /// An expression with two operands
 class Binary : public Expression {
-public:
-  ExprType get_type() override { return ExprType::Binary; }
-  std::string to_string() override {
-    return "(" + token_name(op->tokentype) + " " + left->to_string() + " " +
-           right->to_string() + ")";
-  }
+private:
   Expression *left;
   Token *op;
   Expression *right;
-  Binary(Expression *_left, Token *_operator, Expression *_right)
-      : left(_left), op(_operator), right(_right){};
-  ~Binary() override {
-    delete left;
-    delete right;
-    delete op;
-  }
+
+public:
+  ExprType get_type() override;
+  std::string to_string() override;
+  Binary(Expression *_left, Token *_operator, Expression *_right);
+  ~Binary();
 };
 
 /// An expression between parentheses
 class Grouping : public Expression {
-public:
-  ExprType get_type() override { return ExprType::Grouping; }
-  std::string to_string() override { return "(" + expr->to_string() + ")"; }
+private:
   Expression *expr;
-  Grouping(Expression *_expr) : expr(_expr){};
-  ~Grouping() override { delete expr; }
+
+public:
+  ExprType get_type() override;
+  std::string to_string() override;
+  Grouping(Expression *_expr);
+  ~Grouping();
 };
 
 /// An expression with one operand (operator is `-`  or `!`)
 class Unary : public Expression {
-public:
-  ExprType get_type() override { return ExprType::Unary; }
-  std::string to_string() override {
-    return token_name(op->tokentype) + right->to_string();
-  }
+private:
   Token *op;
   Expression *right;
 
-  Unary(Token *_operator, Expression *_right) : op(_operator), right(_right){};
-  ~Unary() override {
-    delete right;
-    delete op;
-  }
+public:
+  ExprType get_type() override;
+  std::string to_string() override;
+  Unary(Token *_operator, Expression *_right);
+  ~Unary();
 };
 
 /// empty class that is the type of the Nil value
@@ -85,29 +77,12 @@ public:
     ~Value() {}
   } value;
 
-  Literal(Void v) : valuetype(ValueType::Nil), value(v) {}
-  Literal(double_t _numeric) : valuetype(ValueType::Numeric), value(_numeric) {}
-  Literal(std::string _str) : valuetype(ValueType::String), value(_str) {}
-  Literal(bool _boolean) : valuetype(ValueType::Boolean), value(_boolean) {}
+  Literal(Void v) : valuetype(ValueType::Nil), value(v){};
+  Literal(double_t _numeric) : valuetype(ValueType::Numeric), value(_numeric){};
+  Literal(std::string _str) : valuetype(ValueType::String), value(_str){};
+  Literal(bool _boolean) : valuetype(ValueType::Boolean), value(_boolean){};
 
-  std::string to_string() override {
-    std::string text;
-    switch (valuetype) {
-    case String:
-      text = "\"" + value.str + "\"";
-      break;
-    case Numeric:
-      text = std::to_string(value.numeric);
-      break;
-    case Boolean:
-      text = value.boolean ? "True" : "False";
-      break;
-    case Nil:
-      text = "NULL";
-      break;
-    }
-    return text;
-  }
+  std::string to_string() override;
 };
 
 class Parser {
