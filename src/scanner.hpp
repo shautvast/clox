@@ -2,12 +2,12 @@
 
 #include "tokens.hpp"
 #include <cstdbool>
-#include <list>
 #include <string>
+#include <vector>
 
 typedef struct {
   bool had_error;
-  std::list<Token> token_list;
+  std::vector<Token> token_list;
 } ScanResult;
 
 class Scanner {
@@ -17,13 +17,13 @@ private:
   int start;
   int current_line;
   std::string source;
-  std::list<Token> token_list;
+  std::vector<Token> token_list;
 
 public:
   Scanner(std::string s);
   ScanResult scan_tokens();
   void add_token(Token::Type type);
-  void add_token_with_literal(Token::Type type, std::string literal);
+  void add_token(Token::Type type, std::string literal);
   char advance();
   void scan_token();
   void identifier();

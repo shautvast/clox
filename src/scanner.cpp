@@ -2,9 +2,9 @@
 #include "tokens.hpp"
 #include <cstdbool>
 #include <iostream>
-#include <list>
 #include <map>
 #include <string>
+#include <vector>
 
 static const std::map<std::string, Token::Type> keywords = {
     {"and", Token::Type::AND},       {"class", Token::Type::CLASS},
@@ -19,7 +19,7 @@ static const std::map<std::string, Token::Type> keywords = {
 
 Scanner::Scanner(std::string s)
     : had_error(false), current_pos(0), start(0), current_line(1), source(s),
-      token_list(std::list<Token>()) {}
+      token_list(std::vector<Token>()) {}
 
 ScanResult Scanner::scan_tokens() {
   while (current_pos < source.length()) {
@@ -35,15 +35,13 @@ ScanResult Scanner::scan_tokens() {
 }
 
 void Scanner::add_token(Token::Type type) {
-  Token token =
-      Token(type, source.substr(start, current_pos), "", current_line);
-  token_list.push_front(token);
+  Token token = Token(type, "", "", current_line);
+  token_list.push_back(token);
 }
 
-void Scanner::add_token_with_literal(Token::Type type, std::string literal) {
-  Token token =
-      Token(type, source.substr(start, current_pos), literal, current_line);
-  token_list.push_front(token);
+void Scanner::add_token(Token::Type type, std::string literal) {
+  Token token = Token(type, literal, literal, current_line);
+  token_list.push_back(token);
 }
 
 char Scanner::advance() {
@@ -91,6 +89,9 @@ void Scanner::scan_token() {
   case '<':
     add_token(match('=') ? Token::Type::LESS_EQUAL : Token::Type::LESS);
     break;
+  case '*':
+    add_token(Token::Type::STAR);
+    break;
   case '/':
     if (match('/')) {
       while (peek() != '\n' && !is_at_end()) {
@@ -127,13 +128,12 @@ void Scanner::identifier() {
     advance();
   }
 
-  std::string text = source.substr(start + 1, current_pos - start);
-
+  std::string text = source.substr(start, current_pos - start);
   auto it = keywords.find(text);
   if (it != keywords.end()) {
-    add_token(it->second);
+    add_token(it->second, text);
   } else {
-    add_token(Token::Type::IDENTIFIER);
+    add_token(Token::Type::IDENTIFIER, text);
   }
 }
 
@@ -144,8 +144,7 @@ void Scanner::number() {
     advance();
   while (is_digit(peek()))
     advance();
-  add_token_with_literal(Token::Type::NUMBER,
-                         source.substr(start + 1, current_pos - start));
+  add_token(Token::Type::NUMBER, source.substr(start, current_pos - start));
 }
 
 bool Scanner::is_digit(char c) { return c >= '0' && c <= '9'; }
@@ -165,7 +164,7 @@ void Scanner::string() {
   advance();
 
   std::string string = source.substr(start + 1, current_pos - start - 2);
-  add_token_with_literal(Token::Type::STRING, string);
+  add_token(Token::Type::STRING, string);
 }
 
 bool Scanner::match(char expected) {

@@ -54,3 +54,5 @@ public:
   Token(Token::Type _tokentype, std::string _lexeme, std::string _literal,
         int line);
 };
+
+std::string token_name(Token::Type tokentype);

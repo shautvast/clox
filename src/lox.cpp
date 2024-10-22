@@ -1,12 +1,13 @@
+#include "parser.hpp"
 #include "scanner.hpp"
 #include "tokens.hpp"
 #include <cstdbool>
 #include <fstream>
 #include <iostream>
-#include <list>
 #include <string>
+#include <vector>
 
-void print_tokens(std::list<Token> *list);
+void print_tokens(std::vector<Token> *list);
 int run_file(std::string file);
 void run_prompt(void);
 ScanResult run(std::string source);
@@ -43,11 +44,16 @@ void run_prompt(void) {
 
   for (;;) {
     std::cout << ">";
-    std::cin >> line;
+
+    std::getline(std::cin, line);
 
     ScanResult scan_result = run(line.substr(0, line.length()));
-
-    print_tokens(&scan_result.token_list);
+    // print_tokens(&scan_result.token_list);
+    if (!scan_result.had_error) {
+      Expression *e = (new Parser())->parse(scan_result.token_list);
+      std::cout << e->to_string();
+      std::cout << "\n";
+    }
   }
 }
 
@@ -56,8 +62,8 @@ ScanResult run(std::string source) {
   return scanner->scan_tokens();
 }
 
-void print_tokens(std::list<Token> *list) {
-  for (std::list<Token>::iterator token = list->begin(); token != list->end();
+void print_tokens(std::vector<Token> *list) {
+  for (std::vector<Token>::iterator token = list->begin(); token != list->end();
        ++token) {
     std::cout << token->to_string() << "(" << token->literal << "), ";
   }
