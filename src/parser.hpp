@@ -7,49 +7,48 @@
 
 enum class ExprType { Binary, Grouping, Unary, Literal, None };
 
+using namespace std;
+
 /// Base class for expressions
 class Expression {
 public:
-  virtual ExprType get_type() = 0;     // abstract, getter for tyoe
-  virtual std::string to_string() = 0; // abstract, string rep for debugging
-  virtual ~Expression();               // destructor
-};
+  virtual ExprType get_type() = 0; // abstract, getter for tyoe
+  virtual string as_string() = 0;  // abstract, string rep for debugging
+  virtual ~Expression();           // destructor
+};                                 // namespace stdclass Expression
 
 /// An expression with two operands
 class Binary : public Expression {
-private:
   Expression *left;
   Token *op;
   Expression *right;
 
 public:
   ExprType get_type() override;
-  std::string to_string() override;
+  string as_string() override;
   Binary(Expression *_left, Token *_operator, Expression *_right);
   ~Binary();
 };
 
 /// An expression between parentheses
 class Grouping : public Expression {
-private:
   Expression *expr;
 
 public:
   ExprType get_type() override;
-  std::string to_string() override;
+  string as_string() override;
   Grouping(Expression *_expr);
   ~Grouping();
 };
 
 /// An expression with one operand (operator is `-`  or `!`)
 class Unary : public Expression {
-private:
   Token *op;
   Expression *right;
 
 public:
   ExprType get_type() override;
-  std::string to_string() override;
+  string as_string() override;
   Unary(Token *_operator, Expression *_right);
   ~Unary();
 };
@@ -67,28 +66,27 @@ public:
   union Value {
     double_t numeric;
     bool boolean;
-    std::string str;
+    string str;
     Void dummy;
 
     Value(double_t _numeric) : numeric(_numeric) {}
     Value(bool _boolean) : boolean(_boolean) {}
-    Value(std::string _str) : str(_str) {}
+    Value(string _str) : str(_str) {}
     Value(Void v) : dummy(v) {}
     ~Value() {}
   } value;
 
   Literal(Void v) : valuetype(ValueType::Nil), value(v){};
   Literal(double_t _numeric) : valuetype(ValueType::Numeric), value(_numeric){};
-  Literal(std::string _str) : valuetype(ValueType::String), value(_str){};
+  Literal(string _str) : valuetype(ValueType::String), value(_str){};
   Literal(bool _boolean) : valuetype(ValueType::Boolean), value(_boolean){};
 
-  std::string to_string() override;
+  string as_string() override;
 };
 
 class Parser {
-private:
-  std::vector<Expression> expressions;
-  std::vector<Token> tokens;
+  vector<Expression> expressions;
+  vector<Token> tokens;
   int current_token;
 
   Token peek() { return tokens[current_token]; };
@@ -116,7 +114,7 @@ private:
 
     for (int i = 0; i < count; i++) {
       Token::Type ttc = va_arg(list, Token::Type);
-      // std::cout << token_name(ttc) << "\n";
+      // cout << token_name(ttc) << "\n";
       if (check(ttc)) {
         advance();
         return true;
@@ -125,16 +123,16 @@ private:
     return false;
   };
 
-  Token *consume(Token::Type typ, std::string message) {
+  Token *consume(Token::Type typ, string message) {
     if (check(typ)) {
       return advance();
     }
     throw error(peek(), message);
   }
 
-  std::runtime_error error(Token token, std::string message) {
-    std::cout << token.to_string() << " " << message;
-    return std::runtime_error(message);
+  runtime_error error(Token token, string message) {
+    cout << token.as_string() << " " << message;
+    return runtime_error(message); // TODO no exceptions
   }
 
   Expression *primary() {
@@ -145,7 +143,7 @@ private:
     if (match(1, Token::Type::NIL))
       return new Literal(new Void());
     if (match(1, Token::Type::NUMBER)) {
-      return new Literal(std::stod(previous()->literal));
+      return new Literal(stod(previous()->literal));
     }
     if (match(1, Token::Type::STRING)) {
       return new Literal(previous()->literal);
@@ -155,11 +153,11 @@ private:
       consume(Token::Type::RIGHT_PAREN, "Expect ')'.");
       return new Grouping(e);
     }
-    throw std::runtime_error("Expected an expression");
+    throw runtime_error("Expected an expression");
   }
 
 public:
-  Expression *parse(std::vector<Token> tokenlist);
+  Expression *parse(vector<Token> tokenlist);
   Expression *unary() {
     if (match(2, Token::BANG, Token::Type::MINUS)) {
       Token *op = previous();

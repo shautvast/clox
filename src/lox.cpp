@@ -7,10 +7,12 @@
 #include <string>
 #include <vector>
 
-void print_tokens(std::vector<Token> *list);
-int run_file(std::string file);
+using namespace std;
+
+void print_tokens(vector<Token> *list);
+int run_file(string file);
 void run_prompt(void);
-ScanResult run(std::string source);
+ScanResult run(string source);
 
 int main(int argc, char *argv[]) {
   if (argc > 2) {
@@ -24,9 +26,9 @@ int main(int argc, char *argv[]) {
   return EXIT_SUCCESS;
 }
 
-int run_file(std::string filename) {
-  std::string content;
-  std::ifstream file;
+int run_file(string filename) {
+  string content;
+  ifstream file;
   file.open(filename);
   if (file.is_open()) {
     file >> content;
@@ -40,33 +42,33 @@ int run_file(std::string filename) {
 }
 
 void run_prompt(void) {
-  std::string line;
+  string line;
 
   for (;;) {
-    std::cout << ">";
+    cout << ">";
 
-    std::getline(std::cin, line);
+    getline(cin, line);
 
     ScanResult scan_result = run(line.substr(0, line.length()));
     // print_tokens(&scan_result.token_list);
     if (!scan_result.had_error) {
       Expression *e = (new Parser())->parse(scan_result.token_list);
-      std::cout << e->to_string();
-      std::cout << "\n";
+      cout << e->as_string();
+      cout << "\n";
     }
   }
 }
 
-ScanResult run(std::string source) {
+ScanResult run(string source) {
   Scanner *scanner = new Scanner(source);
   return scanner->scan_tokens();
 }
 
-void print_tokens(std::vector<Token> *list) {
-  for (std::vector<Token>::iterator token = list->begin(); token != list->end();
+void print_tokens(vector<Token> *list) {
+  for (vector<Token>::iterator token = list->begin(); token != list->end();
        ++token) {
-    std::cout << token->to_string() << "(" << token->literal << "), ";
+    cout << token->as_string() << "(" << token->literal << "), ";
   }
 
-  std::cout << "\n";
+  cout << "\n";
 }

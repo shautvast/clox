@@ -1,10 +1,11 @@
 #include "tokens.hpp"
 
-Token::Token(Token::Type _tokentype, std::string _lexeme, std::string _literal,
-             int _line)
+using namespace std;
+
+Token::Token(Token::Type _tokentype, string _lexeme, string _literal, int _line)
     : lexeme(_lexeme), literal(_literal), line(_line), tokentype(_tokentype) {}
 
-std::string token_name(Token::Type tokentype) {
+string token_name(Token::Type tokentype) {
   static const std::string tokens[] = {
       "END_OF_FILE", "LEFT_PAREN", "RIGHT_PAREN",   "LEFT_BRACE", "RIGHT_BRACE",
       "COMMA",       "DOT",        "MINUS",         "PLUS",       "SEMICOLON",
@@ -17,4 +18,4 @@ std::string token_name(Token::Type tokentype) {
   return tokens[(int)tokentype];
 }
 
-std::string Token::to_string() { return token_name(tokentype); }
+std::string Token::as_string() { return token_name(tokentype); }

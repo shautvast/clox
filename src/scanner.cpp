@@ -6,7 +6,9 @@
 #include <string>
 #include <vector>
 
-static const std::map<std::string, Token::Type> keywords = {
+using namespace std;
+
+static const map<string, Token::Type> keywords = {
     {"and", Token::Type::AND},       {"class", Token::Type::CLASS},
     {"else", Token::Type::ELSE},     {"false", Token::Type::FALSE},
     {"for", Token::Type::FOR},       {"fun", Token::Type::FUN},
@@ -17,9 +19,9 @@ static const std::map<std::string, Token::Type> keywords = {
     {"var", Token::Type::VAR},       {"while", Token::Type::WHILE},
 };
 
-Scanner::Scanner(std::string s)
-    : had_error(false), current_pos(0), start(0), current_line(1), source(s),
-      token_list(std::vector<Token>()) {}
+Scanner::Scanner(string _source)
+    : had_error(false), current_pos(0), start(0), current_line(1),
+      source(_source), token_list(vector<Token>()) {}
 
 ScanResult Scanner::scan_tokens() {
   while (current_pos < source.length()) {
@@ -39,7 +41,7 @@ void Scanner::add_token(Token::Type type) {
   token_list.push_back(token);
 }
 
-void Scanner::add_token(Token::Type type, std::string literal) {
+void Scanner::add_token(Token::Type type, string literal) {
   Token token = Token(type, literal, literal, current_line);
   token_list.push_back(token);
 }
@@ -109,7 +111,7 @@ void Scanner::scan_token() {
     current_line += 1;
     break;
   case '"':
-    string();
+    scan_string();
     break;
   default:
     if (is_digit(c)) {
@@ -128,7 +130,7 @@ void Scanner::identifier() {
     advance();
   }
 
-  std::string text = source.substr(start, current_pos - start);
+  string text = source.substr(start, current_pos - start);
   auto it = keywords.find(text);
   if (it != keywords.end()) {
     add_token(it->second, text);
@@ -149,7 +151,7 @@ void Scanner::number() {
 
 bool Scanner::is_digit(char c) { return c >= '0' && c <= '9'; }
 
-void Scanner::string() {
+void Scanner::scan_string() {
   while (peek() != '"' && !is_at_end()) {
     if (peek() == '\n')
       current_line += 1;
@@ -163,8 +165,8 @@ void Scanner::string() {
 
   advance();
 
-  std::string string = source.substr(start + 1, current_pos - start - 2);
-  add_token(Token::Type::STRING, string);
+  string s = source.substr(start + 1, current_pos - start - 2);
+  add_token(Token::Type::STRING, s);
 }
 
 bool Scanner::match(char expected) {
@@ -200,10 +202,10 @@ bool Scanner::is_alphanumeric(char c) { return is_alpha(c) || is_digit(c); }
 
 bool Scanner::is_at_end(void) { return current_pos >= source.length(); }
 
-void Scanner::error(std::string message) { report("", message); }
+void Scanner::error(string message) { report("", message); }
 
-void Scanner::report(std::string where, std::string message) {
-  std::cout << "*[Line " << current_line << "] Error " << where << " : "
-            << message << "\n";
+void Scanner::report(string where, std::string message) {
+  cout << "*[Line " << current_line << "] Error " << where << " : " << message
+       << "\n";
   had_error = true;
 }

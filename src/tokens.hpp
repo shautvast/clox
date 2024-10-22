@@ -2,10 +2,12 @@
 
 #include <string>
 
+using namespace std;
+
 class Token {
 public:
-  std::string lexeme;
-  std::string literal;
+  string lexeme;
+  string literal;
   int line;
   enum Type {
     END_OF_FILE = 0,
@@ -49,10 +51,10 @@ public:
     WHILE = 38,
   } tokentype;
 
-  std::string to_string();
+  string as_string();
 
   Token(Token::Type _tokentype, std::string _lexeme, std::string _literal,
         int line);
 };
 
-std::string token_name(Token::Type tokentype);
+string token_name(Token::Type tokentype);

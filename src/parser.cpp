@@ -1,13 +1,15 @@
 #include "parser.hpp"
 
+using namespace std;
+
 Expression::~Expression() {}
 
 // class Binary
 ExprType Binary::get_type() { return ExprType::Binary; }
 
-std::string Binary::to_string() {
-  return "(" + token_name(op->tokentype) + " " + left->to_string() + " " +
-         right->to_string() + ")";
+string Binary::as_string() {
+  return "(" + token_name(op->tokentype) + " " + left->as_string() + " " +
+         right->as_string() + ")";
 }
 
 Binary::Binary(Expression *_left, Token *_operator, Expression *_right)
@@ -22,7 +24,7 @@ Binary::~Binary() {
 // class Grouping
 ExprType Grouping::get_type() { return ExprType::Grouping; }
 
-std::string Grouping::to_string() { return "(" + expr->to_string() + ")"; }
+string Grouping::as_string() { return "(" + expr->as_string() + ")"; }
 
 Grouping::Grouping(Expression *_expr) : expr(_expr){};
 
@@ -31,8 +33,8 @@ Grouping::~Grouping() { delete expr; }
 // class Unary
 ExprType Unary::get_type() { return ExprType::Unary; }
 
-std::string Unary::to_string() {
-  return token_name(op->tokentype) + right->to_string();
+string Unary::as_string() {
+  return token_name(op->tokentype) + right->as_string();
 }
 
 Unary::Unary(Token *_operator, Expression *_right)
@@ -44,14 +46,14 @@ Unary::~Unary() {
 }
 
 // class Literal
-std::string Literal::to_string() {
-  std::string text;
+string Literal::as_string() {
+  string text;
   switch (valuetype) {
   case String:
     text = "\"" + value.str + "\"";
     break;
   case Numeric:
-    text = std::to_string(value.numeric);
+    text = to_string(value.numeric);
     break;
   case Boolean:
     text = value.boolean ? "True" : "False";
@@ -63,7 +65,7 @@ std::string Literal::to_string() {
   return text;
 }
 
-Expression *Parser::parse(std::vector<Token> tokenlist) {
+Expression *Parser::parse(vector<Token> tokenlist) {
   tokens = tokenlist;
   current_token = 0;
   return expression();
