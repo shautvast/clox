@@ -89,125 +89,22 @@ class Parser {
   vector<Token> tokens;
   int current_token;
 
-  Token peek() { return tokens[current_token]; };
-
-  bool is_at_end() { return peek().tokentype == Token::END_OF_FILE; };
-
-  Token *previous() { return &tokens[current_token - 1]; };
-
-  Token *advance() {
-    if (!is_at_end())
-      current_token += 1;
-    return previous();
-  }
-
-  bool check(Token::Type type) {
-    if (is_at_end()) {
-      return false;
-    }
-    return peek().tokentype == type;
-  }
-
-  bool match(int count, ...) {
-    va_list list;
-    va_start(list, count);
-
-    for (int i = 0; i < count; i++) {
-      Token::Type ttc = va_arg(list, Token::Type);
-      // cout << token_name(ttc) << "\n";
-      if (check(ttc)) {
-        advance();
-        return true;
-      }
-    }
-    return false;
-  };
-
-  Token *consume(Token::Type typ, string message) {
-    if (check(typ)) {
-      return advance();
-    }
-    throw error(peek(), message);
-  }
-
-  runtime_error error(Token token, string message) {
-    cout << token.as_string() << " " << message;
-    return runtime_error(message); // TODO no exceptions
-  }
-
-  Expression *primary() {
-    if (match(1, Token::Type::FALSE))
-      return new Literal(false);
-    if (match(1, Token::Type::TRUE))
-      return new Literal(true);
-    if (match(1, Token::Type::NIL))
-      return new Literal(new Void());
-    if (match(1, Token::Type::NUMBER)) {
-      return new Literal(stod(previous()->literal));
-    }
-    if (match(1, Token::Type::STRING)) {
-      return new Literal(previous()->literal);
-    }
-    if (match(1, Token::Type::LEFT_PAREN)) {
-      Expression *e = expression();
-      consume(Token::Type::RIGHT_PAREN, "Expect ')'.");
-      return new Grouping(e);
-    }
-    throw runtime_error("Expected an expression");
-  }
+  Token peek();
+  bool is_at_end();
+  Token *previous();
+  Token *advance();
+  bool check(Token::Type type);
+  bool match(int count, ...);
+  Token *consume(Token::Type typ, string message);
+  runtime_error error(Token token, string message);
+  Expression *primary();
+  Expression *unary();
+  Expression *expression();
+  Expression *factor();
+  Expression *term();
+  Expression *equality(void);
+  Expression *comparison(void);
 
 public:
   Expression *parse(vector<Token> tokenlist);
-  Expression *unary() {
-    if (match(2, Token::BANG, Token::Type::MINUS)) {
-      Token *op = previous();
-      Expression *right = unary();
-      return new Unary(op, right);
-    }
-    return primary();
-  }
-
-  Expression *expression() { return equality(); }
-
-  Expression *factor() {
-    Expression *expr = unary();
-    while (match(2, Token::Type::SLASH, Token::Type::STAR)) {
-      Token *op = previous();
-      Expression *right = unary();
-      expr = new Binary(expr, op, right);
-    }
-    return expr;
-  }
-
-  Expression *term() {
-    Expression *expr = factor();
-    while (match(2, Token::Type::MINUS, Token::Type::PLUS)) {
-      Token *op = previous();
-      Expression *right = unary();
-      expr = new Binary(expr, op, right);
-    }
-    return expr;
-  }
-
-  Expression *equality(void) {
-    Expression *expr = comparison();
-
-    while (match(2, Token::Type::BANG_EQUAL, Token::Type::BANG_EQUAL)) {
-      Token *op = previous();
-      Expression *right = comparison();
-      return new Binary(expr, op, right);
-    }
-    return expr;
-  }
-
-  Expression *comparison(void) {
-    Expression *expr = term();
-    while (match(4, Token::Type::GREATER, Token::Type::GREATER_EQUAL,
-                 Token::Type::LESS, Token::Type::LESS_EQUAL)) {
-      Token *op = previous();
-      Expression *right = term();
-      expr = new Binary(expr, op, right);
-    }
-    return expr;
-  }
 };
