@@ -65,6 +65,7 @@ string Literal::as_string() {
   return text;
 }
 
+// class Parser
 Expression *Parser::parse(vector<Token> tokenlist) {
   tokens = tokenlist;
   current_token = 0;

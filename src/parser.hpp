@@ -1,8 +1,6 @@
 #pragma once
 
 #include "tokens.hpp"
-#include <cstdarg>
-#include <iostream>
 #include <vector>
 
 enum class ExprType { Binary, Grouping, Unary, Literal, None };
@@ -89,22 +87,44 @@ class Parser {
   vector<Token> tokens;
   int current_token;
 
+  /// returns the current token without moving the pointer;
+  /// pointer here meanse index into the tokenlist.
   Token peek();
+  /// checks if the current token is EOF
   bool is_at_end();
+  /// returns the previous token without moving the pointer
   Token *previous();
+  /// increments the token pointer
   Token *advance();
+  /// checks if the current token is of specified type
   bool check(Token::Type type);
+  /// checks if the current token is one of the specified types
+  /// count: the number of tokens to match
+  /// ... varargs argument for the tokens to match
   bool match(int count, ...);
+  /// checks if the current token is of the specified type and
+  /// moves the token forward if so, otherwise throws an exception with
+  /// the specified message
   Token *consume(Token::Type typ, string message);
+  /// throws an exception for the specified token with the specified message
   runtime_error error(Token token, string message);
+  /// tries to parse the token as a primary value (string, number etc)
   Expression *primary();
+  /// tries to parse the tokens as a unary expression
   Expression *unary();
+  /// tries to parse the tokens
   Expression *expression();
+  /// tries to parse the tokens as a multiplication or division
   Expression *factor();
+  /// tries to parse the tokens as an addition or subtraction
   Expression *term();
+  /// tries to parse the tokens as an equality (`a == b` / `a!= b`)
   Expression *equality(void);
+  /// tries to parse the tokens as a comparison (`a > b` / `a >= b` / `a < b` /
+  /// `a <= b` )
   Expression *comparison(void);
 
 public:
+  /// public method for parsing expressions
   Expression *parse(vector<Token> tokenlist);
 };
