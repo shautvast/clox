@@ -7,16 +7,18 @@
 
 enum class ExprType { Binary, Grouping, Unary, Literal, None };
 
+/// Base class for expressions
 class Expression {
 public:
-  virtual ExprType type() { return ExprType::None; };
-  virtual std::string to_string() { return "Expression()"; };
-  virtual ~Expression() {}
+  virtual ExprType get_type() = 0;     // abstract, getter for tyoe
+  virtual std::string to_string() = 0; // abstract, string rep for debugging
+  virtual ~Expression() = 0;           // destructor
 };
 
+/// An expression with two operands
 class Binary : public Expression {
 public:
-  ExprType type() override { return ExprType::Binary; }
+  ExprType get_type() override { return ExprType::Binary; }
   std::string to_string() override {
     return "(" + token_name(op->tokentype) + " " + left->to_string() + " " +
            right->to_string() + ")";
@@ -33,18 +35,20 @@ public:
   }
 };
 
+/// An expression between parentheses
 class Grouping : public Expression {
 public:
-  ExprType type() override { return ExprType::Grouping; }
+  ExprType get_type() override { return ExprType::Grouping; }
   std::string to_string() override { return "(" + expr->to_string() + ")"; }
   Expression *expr;
   Grouping(Expression *_expr) : expr(_expr){};
   ~Grouping() override { delete expr; }
 };
 
+/// An expression with one operand (operator is `-`  or `!`)
 class Unary : public Expression {
 public:
-  ExprType type() override { return ExprType::Unary; }
+  ExprType get_type() override { return ExprType::Unary; }
   std::string to_string() override {
     return token_name(op->tokentype) + right->to_string();
   }
@@ -58,30 +62,15 @@ public:
   }
 };
 
+/// empty class that is the type of the Nil value
 class Void {};
 
+/// encapsulates a value: numeric, string etc
 class Literal : public Expression {
 public:
-  ExprType type() override { return ExprType::Literal; }
-  std::string to_string() override {
-    std::string text;
-    switch (valuetype) {
-    case String:
-      text = "\"" + value.str + "\"";
-      break;
-    case Numeric:
-      text = std::to_string(value.numeric);
-      break;
-    case Boolean:
-      text = value.boolean ? "True" : "False";
-      break;
-    case Nil:
-      text = "NULL";
-      break;
-    }
-    return text;
-  }
   enum ValueType { String, Numeric, Boolean, Nil } valuetype;
+
+  ExprType get_type() override { return ExprType::Literal; }
 
   union Value {
     double_t numeric;
@@ -100,6 +89,25 @@ public:
   Literal(double_t _numeric) : valuetype(ValueType::Numeric), value(_numeric) {}
   Literal(std::string _str) : valuetype(ValueType::String), value(_str) {}
   Literal(bool _boolean) : valuetype(ValueType::Boolean), value(_boolean) {}
+
+  std::string to_string() override {
+    std::string text;
+    switch (valuetype) {
+    case String:
+      text = "\"" + value.str + "\"";
+      break;
+    case Numeric:
+      text = std::to_string(value.numeric);
+      break;
+    case Boolean:
+      text = value.boolean ? "True" : "False";
+      break;
+    case Nil:
+      text = "NULL";
+      break;
+    }
+    return text;
+  }
 };
 
 class Parser {
