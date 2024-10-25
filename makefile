@@ -1,6 +1,6 @@
 TARGET := ./target
 SRC := ./src
-CC := clang++ -c -std=c++17 -Wall -Wextra -pedantic -Werror
+CC := clang++ -c -std=c++23 -Wall -Wextra -pedantic -Werror
 
 SRCS := $(shell find $(SRC) -name '*.c')
 OBJS := $(SRCS:%=$(TARGET)/%.o)

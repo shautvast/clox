@@ -3,7 +3,7 @@
     "arguments": [
       "/usr/bin/clang++",
       "-c",
-      "-std=c++17",
+      "-std=c++23",
       "-Wall",
       "-Wextra",
       "-pedantic",
@@ -15,56 +15,5 @@
     "directory": "/Users/Shautvast/dev/clox",
     "file": "/Users/Shautvast/dev/clox/src/lox.cpp",
     "output": "/Users/Shautvast/dev/clox/target/lox.cpp.o"
-  },
-  {
-    "arguments": [
-      "/usr/bin/clang++",
-      "-c",
-      "-std=c++17",
-      "-Wall",
-      "-Wextra",
-      "-pedantic",
-      "-Werror",
-      "-o",
-      "target/parser.cpp.o",
-      "src/parser.cpp"
-    ],
-    "directory": "/Users/Shautvast/dev/clox",
-    "file": "/Users/Shautvast/dev/clox/src/parser.cpp",
-    "output": "/Users/Shautvast/dev/clox/target/parser.cpp.o"
-  },
-  {
-    "arguments": [
-      "/usr/bin/clang++",
-      "-c",
-      "-std=c++17",
-      "-Wall",
-      "-Wextra",
-      "-pedantic",
-      "-Werror",
-      "-o",
-      "target/scanner.cpp.o",
-      "src/scanner.cpp"
-    ],
-    "directory": "/Users/Shautvast/dev/clox",
-    "file": "/Users/Shautvast/dev/clox/src/scanner.cpp",
-    "output": "/Users/Shautvast/dev/clox/target/scanner.cpp.o"
-  },
-  {
-    "arguments": [
-      "/usr/bin/clang++",
-      "-c",
-      "-std=c++17",
-      "-Wall",
-      "-Wextra",
-      "-pedantic",
-      "-Werror",
-      "-o",
-      "target/tokens.cpp.o",
-      "src/tokens.cpp"
-    ],
-    "directory": "/Users/Shautvast/dev/clox",
-    "file": "/Users/Shautvast/dev/clox/src/tokens.cpp",
-    "output": "/Users/Shautvast/dev/clox/target/tokens.cpp.o"
   }
 ]

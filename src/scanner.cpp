@@ -1,4 +1,5 @@
 #include "scanner.hpp"
+#include "error.hpp"
 #include "tokens.hpp"
 #include <cstdbool>
 #include <iostream>
@@ -23,17 +24,15 @@ Scanner::Scanner(string _source)
     : had_error(false), current_pos(0), start(0), current_line(1),
       source(_source), token_list(vector<Token>()) {}
 
-ScanResult Scanner::scan_tokens() {
+Result<vector<Token>> Scanner::scan_tokens() {
   while (current_pos < source.length()) {
     start = current_pos;
-    scan_token();
+    Result<Void> r = scan_token();
+    if (is_err(r)) {
+      return Err(r);
+    }
   }
-
-  ScanResult scan_result;
-  scan_result.token_list = token_list;
-  scan_result.had_error = had_error;
-
-  return scan_result;
+  return token_list;
 }
 
 void Scanner::add_token(Token::Type type) {
@@ -51,7 +50,7 @@ char Scanner::advance() {
   return c;
 }
 
-void Scanner::scan_token() {
+Result<Void> Scanner::scan_token() {
   char c = advance();
 
   switch (c) {
@@ -119,10 +118,11 @@ void Scanner::scan_token() {
     } else if (is_alpha(c)) {
       identifier();
     } else {
-      error("Unexpected character.");
+      return Error{"Unexpected character."};
     }
     break;
   }
+  return Void{};
 }
 
 void Scanner::identifier() {
@@ -159,7 +159,7 @@ void Scanner::scan_string() {
   }
 
   if (is_at_end()) {
-    error("Unterminated string.");
+    report("Unterminated string.");
     return;
   }
 
@@ -202,7 +202,7 @@ bool Scanner::is_alphanumeric(char c) { return is_alpha(c) || is_digit(c); }
 
 bool Scanner::is_at_end(void) { return current_pos >= source.length(); }
 
-void Scanner::error(string message) { report("", message); }
+void Scanner::report(string message) { report("", message); }
 
 void Scanner::report(string where, std::string message) {
   cout << "*[Line " << current_line << "] Error " << where << " : " << message

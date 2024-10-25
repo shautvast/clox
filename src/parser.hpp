@@ -1,5 +1,6 @@
 #pragma once
 
+#include "error.hpp"
 #include "tokens.hpp"
 #include <memory>
 #include <vector>
@@ -53,7 +54,7 @@ public:
 };
 
 /// empty class that is the type of the Nil value
-class Void {};
+class NilType {};
 
 /// encapsulates a value: numeric, string etc
 class Literal : public Expression {
@@ -66,16 +67,16 @@ public:
     double_t numeric;
     bool boolean;
     string str;
-    Void dummy;
+    NilType dummy;
 
     Value(double_t _numeric) : numeric(_numeric) {}
     Value(bool _boolean) : boolean(_boolean) {}
     Value(string _str) : str(_str) {}
-    Value(Void v) : dummy(v) {}
+    Value(NilType v) : dummy(v) {}
     ~Value() {}
   } value;
 
-  Literal(Void v) : valuetype(ValueType::Nil), value(v){};
+  Literal(NilType v) : valuetype(ValueType::Nil), value(v){};
   Literal(double_t _numeric) : valuetype(ValueType::Numeric), value(_numeric){};
   Literal(string _str) : valuetype(ValueType::String), value(_str){};
   Literal(bool _boolean) : valuetype(ValueType::Boolean), value(_boolean){};
@@ -106,26 +107,26 @@ class Parser {
   /// checks if the current token is of the specified type and
   /// moves the token forward if so, otherwise throws an exception with
   /// the specified message
-  Token *consume(Token::Type typ, string message);
+  Result<Token *> consume(Token::Type typ, string message);
   /// throws an exception for the specified token with the specified message
-  runtime_error error(Token token, string message);
+  Error error(Token token, string message);
   /// tries to parse the token as a primary value (string, number etc)
-  Expression *primary();
+  Result<Expression *> primary();
   /// tries to parse the tokens as a unary expression
-  Expression *unary();
+  Result<Expression *> unary();
   /// tries to parse the tokens
-  Expression *expression();
+  Result<Expression *> expression();
   /// tries to parse the tokens as a multiplication or division
-  Expression *factor();
+  Result<Expression *> factor();
   /// tries to parse the tokens as an addition or subtraction
-  Expression *term();
+  Result<Expression *> term();
   /// tries to parse the tokens as an equality (`a == b` / `a!= b`)
-  Expression *equality(void);
+  Result<Expression *> equality();
   /// tries to parse the tokens as a comparison (`a > b` / `a >= b` / `a < b` /
   /// `a <= b` )
-  Expression *comparison(void);
+  Result<Expression *> comparison();
 
 public:
   /// public method for parsing expressions
-  Expression *parse(vector<Token> tokenlist);
+  Result<Expression *> parse(vector<Token> tokenlist);
 };

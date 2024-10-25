@@ -12,7 +12,7 @@ using namespace std;
 void print_tokens(vector<Token> *list);
 int run_file(string file);
 void run_prompt(void);
-ScanResult run(string source);
+Result<vector<Token>> run(string source);
 
 int main(int argc, char *argv[]) {
   if (argc > 2) {
@@ -36,7 +36,7 @@ int run_file(string filename) {
     exit(1);
   }
 
-  ScanResult scan_result = run(content);
+  Result<vector<Token>> scan_result = run(content);
 
   return EXIT_SUCCESS;
 }
@@ -49,17 +49,22 @@ void run_prompt(void) {
 
     getline(cin, line);
 
-    ScanResult scan_result = run(line.substr(0, line.length()));
+    auto scan_result = run(line.substr(0, line.length()));
     // print_tokens(&scan_result.token_list);
-    if (!scan_result.had_error) {
-      Expression *e = (new Parser())->parse(scan_result.token_list);
-      cout << e->as_string();
-      cout << "\n";
+    if (is_ok(scan_result)) {
+      auto expression = (new Parser())->parse(get<vector<Token>>(scan_result));
+      if (is_ok(expression)) {
+        cout << Ok(expression)->as_string() << "\n";
+      } else {
+        cout << err_msg(expression) << "\n";
+      }
+    } else {
+      cout << err_msg(scan_result) << "\n";
     }
   }
 }
 
-ScanResult run(string source) {
+Result<vector<Token>> run(string source) {
   Scanner *scanner = new Scanner(source);
   return scanner->scan_tokens();
 }

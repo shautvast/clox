@@ -1,4 +1,5 @@
 #include "parser.hpp"
+
 #include <iostream>
 #include <memory>
 
@@ -61,7 +62,7 @@ string Literal::as_string() {
 }
 
 // class Parser
-Expression *Parser::parse(vector<Token> tokenlist) {
+Result<Expression *> Parser::parse(vector<Token> tokenlist) {
   tokens = tokenlist;
   current_token = 0;
   return expression();
@@ -101,25 +102,25 @@ bool Parser::match(int count, ...) {
   return false;
 };
 
-Token *Parser::consume(Token::Type typ, string message) {
+Result<Token *> Parser::consume(Token::Type typ, string message) {
   if (check(typ)) {
     return advance();
   }
-  throw error(peek(), message);
+  return error(peek(), message);
 }
 
-runtime_error Parser::error(Token token, string message) {
+Error Parser::error(Token token, string message) {
   std::cout << token.as_string() << " " << message;
-  return runtime_error(message); // TODO no exceptions
+  return Error(message); // TODO no exceptions
 }
 
-Expression *Parser::primary() {
+Result<Expression *> Parser::primary() {
   if (match(1, Token::Type::FALSE))
     return new Literal(false);
   if (match(1, Token::Type::TRUE))
     return new Literal(true);
   if (match(1, Token::Type::NIL))
-    return new Literal(new Void());
+    return new Literal(new NilType());
   if (match(1, Token::Type::NUMBER)) {
     return new Literal(stod(previous()->literal));
   }
@@ -127,62 +128,90 @@ Expression *Parser::primary() {
     return new Literal(previous()->literal);
   }
   if (match(1, Token::Type::LEFT_PAREN)) {
-    Expression *expr = expression();
-    consume(Token::Type::RIGHT_PAREN, "Expect ')'.");
-    return new Grouping(expr);
+    auto expr = expression();
+    Result<Token *> r = consume(Token::Type::RIGHT_PAREN, "Expect ')'.");
+    if (is_err(r)) {
+      return Err(r);
+    }
+    return new Grouping(Ok(expr));
   }
-  throw runtime_error("Expected an expression");
+  return Error("Expected an expression");
 }
 
-Expression *Parser::unary() {
+Result<Expression *> Parser::unary() {
   if (match(2, Token::BANG, Token::Type::MINUS)) {
     Token *op = previous();
-    Expression *right = unary();
-    return new Unary(op, right);
+    Result<Expression *> right = unary();
+    if (is_ok(right)) {
+      return new Unary(op, Ok(right));
+    }
   }
   return primary();
 }
 
-Expression *Parser::expression() { return equality(); }
+Result<Expression *> Parser::expression() { return equality(); }
 
-Expression *Parser::factor() {
-  Expression *expr = unary();
+Result<Expression *> Parser::factor() {
+  Result<Expression *> expr = unary();
+  if (is_err(expr)) {
+    return expr;
+  }
   while (match(2, Token::Type::SLASH, Token::Type::STAR)) {
     Token *op = previous();
-    Expression *right = unary();
-    expr = new Binary(expr, op, right);
+    auto right = unary();
+    if (is_err(right)) {
+      return right;
+    }
+    expr = new Binary(Ok(expr), op, Ok(right));
   }
   return expr;
 }
 
-Expression *Parser::term() {
-  Expression *expr = factor();
+Result<Expression *> Parser::term() {
+  auto expr = factor();
+  if (is_err(expr)) {
+    return expr;
+  }
   while (match(2, Token::Type::MINUS, Token::Type::PLUS)) {
     Token *op = previous();
-    Expression *right = factor();
-    expr = new Binary(expr, op, right);
+    auto right = factor();
+    if (is_err(right)) {
+      return right;
+    }
+    expr = new Binary(Ok(expr), op, Ok(right));
   }
   return expr;
 }
 
-Expression *Parser::equality(void) {
-  Expression *expr = comparison();
-
+Result<Expression *> Parser::equality(void) {
+  auto expr = comparison();
+  if (is_err(expr)) {
+    return expr;
+  }
   while (match(2, Token::Type::BANG_EQUAL, Token::Type::BANG_EQUAL)) {
     Token *op = previous();
-    Expression *right = comparison();
-    return new Binary(expr, op, right);
+    auto right = comparison();
+    if (is_err(right)) {
+      return right;
+    }
+    return new Binary(Ok(expr), op, Ok(right));
   }
   return expr;
 }
 
-Expression *Parser::comparison(void) {
-  Expression *expr = term();
+Result<Expression *> Parser::comparison(void) {
+  auto expr = term();
+  if (is_err(expr)) {
+    return expr;
+  }
   while (match(4, Token::Type::GREATER, Token::Type::GREATER_EQUAL,
                Token::Type::LESS, Token::Type::LESS_EQUAL)) {
     Token *op = previous();
-    Expression *right = term();
-    expr = new Binary(expr, op, right);
+    auto right = term();
+    if (is_err(right)) {
+      return right;
+    }
+    expr = new Binary(Ok(expr), op, Ok(right));
   }
   return expr;
 }
