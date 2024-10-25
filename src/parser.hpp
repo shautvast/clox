@@ -3,6 +3,7 @@
 #include "error.hpp"
 #include "tokens.hpp"
 #include <memory>
+#include <variant>
 #include <vector>
 
 enum class ExprType { Binary, Grouping, Unary, Literal, None };
@@ -12,8 +13,7 @@ using namespace std;
 /// Base class for expressions
 class Expression {
 public:
-  virtual ExprType get_type() = 0; // get the expression type
-  virtual string as_string() = 0;  // get string rep for debugging
+  virtual string as_string() = 0; // get string rep for debugging
   virtual ~Expression();
 };
 
@@ -24,7 +24,6 @@ class Binary : public Expression {
   unique_ptr<Expression> right;
 
 public:
-  ExprType get_type() override;
   string as_string() override;
   Binary(Expression *_left, Token *_operator, Expression *_right);
   ~Binary();
@@ -35,7 +34,6 @@ class Grouping : public Expression {
   unique_ptr<Expression> expr;
 
 public:
-  ExprType get_type() override;
   string as_string() override;
   Grouping(Expression *_expr);
   ~Grouping();
@@ -47,7 +45,6 @@ class Unary : public Expression {
   unique_ptr<Expression> right;
 
 public:
-  ExprType get_type() override;
   string as_string() override;
   Unary(Token *_operator, Expression *_right);
   ~Unary();
@@ -55,31 +52,31 @@ public:
 
 /// empty class that is the type of the Nil value
 class NilType {};
+typedef std::variant<double_t, bool, string, NilType> Value;
 
 /// encapsulates a value: numeric, string etc
 class Literal : public Expression {
 public:
   enum ValueType { String, Numeric, Boolean, Nil } valuetype;
 
-  ExprType get_type() override { return ExprType::Literal; }
+  Value value;
+  //   union Value {
+  //     double_t numeric;
+  //     bool boolean;
+  //     string str;
+  //     NilType dummy;
 
-  union Value {
-    double_t numeric;
-    bool boolean;
-    string str;
-    NilType dummy;
+  //     Value(double_t _numeric) : numeric(_numeric) {}
+  //     Value(bool _boolean) : boolean(_boolean) {}
+  //     Value(string _str) : str(_str) {}
+  //     Value(NilType v) : dummy(v) {}
+  //     ~Value() {}
+  //   } value;
 
-    Value(double_t _numeric) : numeric(_numeric) {}
-    Value(bool _boolean) : boolean(_boolean) {}
-    Value(string _str) : str(_str) {}
-    Value(NilType v) : dummy(v) {}
-    ~Value() {}
-  } value;
-
-  Literal(NilType v) : valuetype(ValueType::Nil), value(v){};
-  Literal(double_t _numeric) : valuetype(ValueType::Numeric), value(_numeric){};
-  Literal(string _str) : valuetype(ValueType::String), value(_str){};
-  Literal(bool _boolean) : valuetype(ValueType::Boolean), value(_boolean){};
+  Literal(NilType v) : value(v){};
+  Literal(double_t _numeric) : value(_numeric){};
+  Literal(string _str) : value(_str){};
+  Literal(bool _boolean) : value(_boolean){};
 
   string as_string() override;
 };
@@ -122,8 +119,8 @@ class Parser {
   Result<Expression *> term();
   /// tries to parse the tokens as an equality (`a == b` / `a!= b`)
   Result<Expression *> equality();
-  /// tries to parse the tokens as a comparison (`a > b` / `a >= b` / `a < b` /
-  /// `a <= b` )
+  /// tries to parse the tokens as a comparison (`a > b` / `a >= b` / `a < b`
+  /// / `a <= b` )
   Result<Expression *> comparison();
 
 public:

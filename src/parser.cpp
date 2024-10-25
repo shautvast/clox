@@ -8,7 +8,6 @@ using namespace std;
 Expression::~Expression() = default;
 
 // class Binary
-ExprType Binary::get_type() { return ExprType::Binary; }
 
 string Binary::as_string() {
   return "(" + token_name(op->tokentype) + " " + left->as_string() + " " +
@@ -21,7 +20,6 @@ Binary::Binary(Expression *_left, Token *_operator, Expression *_right)
 Binary::~Binary() = default;
 
 // class Grouping
-ExprType Grouping::get_type() { return ExprType::Grouping; }
 
 string Grouping::as_string() { return "(" + expr->as_string() + ")"; }
 
@@ -30,7 +28,6 @@ Grouping::Grouping(Expression *_expr) : expr(_expr){};
 Grouping::~Grouping() = default;
 
 // class Unary
-ExprType Unary::get_type() { return ExprType::Unary; }
 
 string Unary::as_string() {
   return token_name(op->tokentype) + right->as_string();
@@ -44,21 +41,19 @@ Unary::~Unary() = default;
 // class Literal
 string Literal::as_string() {
   string text;
-  switch (valuetype) {
-  case String:
-    text = "\"" + value.str + "\"";
-    break;
-  case Numeric:
-    text = to_string(value.numeric);
-    break;
-  case Boolean:
-    text = value.boolean ? "True" : "False";
-    break;
-  case Nil:
-    text = "NULL";
-    break;
+  if (holds_alternative<string>(value)) {
+    return "\"" + get<string>(value) + "\"";
   }
-  return text;
+  if (holds_alternative<double_t>(value)) {
+    return to_string(get<double_t>(value));
+  }
+  if (holds_alternative<bool>(value)) {
+    return get<bool>(value) ? "True" : "False";
+  }
+  if (holds_alternative<NilType>(value)) {
+    return "NULL";
+  }
+  return "unexpected";
 }
 
 // class Parser
