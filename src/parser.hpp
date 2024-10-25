@@ -60,18 +60,6 @@ public:
   enum ValueType { String, Numeric, Boolean, Nil } valuetype;
 
   Value value;
-  //   union Value {
-  //     double_t numeric;
-  //     bool boolean;
-  //     string str;
-  //     NilType dummy;
-
-  //     Value(double_t _numeric) : numeric(_numeric) {}
-  //     Value(bool _boolean) : boolean(_boolean) {}
-  //     Value(string _str) : str(_str) {}
-  //     Value(NilType v) : dummy(v) {}
-  //     ~Value() {}
-  //   } value;
 
   Literal(NilType v) : value(v){};
   Literal(double_t _numeric) : value(_numeric){};
