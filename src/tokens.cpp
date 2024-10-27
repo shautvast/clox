@@ -1,6 +1,6 @@
 #include "tokens.hpp"
 
-using namespace std;
+using std::string;
 
 Token::Token(Token::Type _tokentype, string _lexeme, string _literal, int _line)
     : lexeme(_lexeme), literal(_literal), line(_line), tokentype(_tokentype) {}

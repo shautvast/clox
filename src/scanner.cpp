@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-using namespace std;
+using std::string, std::map, std::vector, std::cout;
 
 static const map<string, Token::Type> keywords = {
     {"and", Token::Type::AND},       {"class", Token::Type::CLASS},

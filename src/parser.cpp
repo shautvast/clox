@@ -3,7 +3,7 @@
 #include <iostream>
 #include <memory>
 
-using namespace std;
+using std::string, std::to_string, std::vector;
 
 Expression::~Expression() = default;
 

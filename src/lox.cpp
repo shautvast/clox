@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-using namespace std;
+using std::string, std::vector, std::ifstream, std::cin, std::cout;
 
 void print_tokens(vector<Token> *list);
 int run_file(string file);
