@@ -8,51 +8,49 @@
 
 enum class ExprType { Binary, Grouping, Unary, Literal, None };
 
-using namespace std;
-
 /// Base class for expressions
 class Expression {
 public:
-  virtual string as_string() = 0; // get string rep for debugging
+  virtual std::string as_string() = 0; // get string rep for debugging
   virtual ~Expression();
 };
 
 /// An expression with two operands
 class Binary : public Expression {
-  unique_ptr<Expression> left;
-  unique_ptr<Token> op;
-  unique_ptr<Expression> right;
+  std::unique_ptr<Expression> left;
+  std::unique_ptr<Token> op;
+  std::unique_ptr<Expression> right;
 
 public:
-  string as_string() override;
+  std::string as_string() override;
   Binary(Expression *_left, Token *_operator, Expression *_right);
   ~Binary();
 };
 
 /// An expression between parentheses
 class Grouping : public Expression {
-  unique_ptr<Expression> expr;
+  std::unique_ptr<Expression> expr;
 
 public:
-  string as_string() override;
+  std::string as_string() override;
   Grouping(Expression *_expr);
   ~Grouping();
 };
 
 /// An expression with one operand (operator is `-`  or `!`)
 class Unary : public Expression {
-  unique_ptr<Token> op;
-  unique_ptr<Expression> right;
+  std::unique_ptr<Token> op;
+  std::unique_ptr<Expression> right;
 
 public:
-  string as_string() override;
+  std::string as_string() override;
   Unary(Token *_operator, Expression *_right);
   ~Unary();
 };
 
 /// empty class that is the type of the Nil value
 class NilType {};
-typedef std::variant<double_t, bool, string, NilType> Value;
+typedef std::variant<double_t, bool, std::string, NilType> Value;
 
 /// encapsulates a value: numeric, string etc
 class Literal : public Expression {
@@ -63,15 +61,15 @@ public:
 
   Literal(NilType v) : value(v){};
   Literal(double_t _numeric) : value(_numeric){};
-  Literal(string _str) : value(_str){};
+  Literal(std::string _str) : value(_str){};
   Literal(bool _boolean) : value(_boolean){};
 
-  string as_string() override;
+  std::string as_string() override;
 };
 
 class Parser {
-  vector<Expression> expressions;
-  vector<Token> tokens;
+  std::vector<Expression> expressions;
+  std::vector<Token> tokens;
   int current_token;
 
   /// returns the current token without moving the pointer;
@@ -92,9 +90,9 @@ class Parser {
   /// checks if the current token is of the specified type and
   /// moves the token forward if so, otherwise throws an exception with
   /// the specified message
-  Result<Token *> consume(Token::Type typ, string message);
+  Result<Token *> consume(Token::Type typ, std::string message);
   /// throws an exception for the specified token with the specified message
-  Error error(Token token, string message);
+  Error error(Token token, std::string message);
   /// tries to parse the token as a primary value (string, number etc)
   Result<Expression *> primary();
   /// tries to parse the tokens as a unary expression
@@ -113,5 +111,5 @@ class Parser {
 
 public:
   /// public method for parsing expressions
-  Result<Expression *> parse(vector<Token> tokenlist);
+  Result<Expression *> parse(std::vector<Token> tokenlist);
 };

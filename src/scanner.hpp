@@ -6,11 +6,9 @@
 #include <string>
 #include <vector>
 
-using namespace std;
-
 typedef struct {
   bool had_error;
-  vector<Token> token_list;
+  std::vector<Token> token_list;
 } ScanResult;
 
 class Scanner {
@@ -19,15 +17,15 @@ private:
   size_t current_pos;
   int start;
   int current_line;
-  string source;
-  vector<Token> token_list;
+  std::string source;
+  std::vector<Token> token_list;
 
 public:
-  Scanner(string s);
-  Result<vector<Token>> scan_tokens();
+  Scanner(std::string s);
+  Result<std::vector<Token>> scan_tokens();
   Result<Void> scan_token();
   void add_token(Token::Type type);
-  void add_token(Token::Type type, string literal);
+  void add_token(Token::Type type, std::string literal);
   char advance();
   void identifier();
   void number();
@@ -39,6 +37,6 @@ public:
   bool is_alpha(char c);
   bool is_alphanumeric(char c);
   bool is_at_end(void);
-  void report(string message);
-  void report(string where, string message);
+  void report(std::string message);
+  void report(std::string where, std::string message);
 };

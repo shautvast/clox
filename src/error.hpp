@@ -3,13 +3,11 @@
 #include <string>
 #include <variant>
 
-using namespace std;
-
 class Error {
 
 public:
-  string message;
-  Error(string _message) : message(_message){};
+  std::string message;
+  Error(std::string _message) : message(_message){};
 };
 
 class Void {};
@@ -26,6 +24,6 @@ template <typename R> bool is_ok(Result<R> r) {
 template <typename R> R Ok(Result<R> r) { return std::get<R>(r); }
 /// enables rewrapping errors in a new Result type
 template <typename R> Error Err(Result<R> r) { return std::get<Error>(r); }
-template <typename R> string err_msg(Result<R> r) {
+template <typename R> std::string err_msg(Result<R> r) {
   return std::get<Error>(r).message;
 }
