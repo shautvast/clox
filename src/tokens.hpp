@@ -49,7 +49,7 @@ public:
     WHILE = 38,
   } tokentype;
 
-  std::string as_string();
+  std::string as_string() const;
 
   Token(Token::Type _tokentype, std::string _lexeme, std::string _literal,
         int line);

@@ -16,4 +16,4 @@ string token_name(Token::Type tokentype) {
   return tokens[(int)tokentype];
 }
 
-std::string Token::as_string() { return token_name(tokentype); }
+std::string Token::as_string() const { return token_name(tokentype); }

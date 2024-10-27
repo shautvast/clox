@@ -11,7 +11,7 @@ enum class ExprType { Binary, Grouping, Unary, Literal, None };
 /// Base class for expressions
 class Expression {
 public:
-  virtual std::string as_string() = 0; // get string rep for debugging
+  virtual std::string as_string() const = 0; // get string rep for debugging
   virtual ~Expression();
 };
 
@@ -22,7 +22,7 @@ class Binary : public Expression {
   std::unique_ptr<Expression> right;
 
 public:
-  std::string as_string() override;
+  std::string as_string() const override;
   Binary(Expression *_left, Token *_operator, Expression *_right);
   ~Binary();
 };
@@ -32,7 +32,7 @@ class Grouping : public Expression {
   std::unique_ptr<Expression> expr;
 
 public:
-  std::string as_string() override;
+  std::string as_string() const override;
   Grouping(Expression *_expr);
   ~Grouping();
 };
@@ -43,7 +43,7 @@ class Unary : public Expression {
   std::unique_ptr<Expression> right;
 
 public:
-  std::string as_string() override;
+  std::string as_string() const override;
   Unary(Token *_operator, Expression *_right);
   ~Unary();
 };
@@ -64,7 +64,7 @@ public:
   Literal(std::string _str) : value(_str){};
   Literal(bool _boolean) : value(_boolean){};
 
-  std::string as_string() override;
+  std::string as_string() const override;
 };
 
 class Parser {

@@ -46,12 +46,12 @@ void run_prompt(void) {
 
   for (;;) {
     cout << ">";
-
     getline(cin, line);
-
     auto scan_result = run(line.substr(0, line.length()));
-    // print_tokens(&scan_result.token_list);
+
     if (is_ok(scan_result)) {
+      auto tokens = Ok(scan_result);
+      print_tokens(&tokens);
       auto expression = (new Parser())->parse(get<vector<Token>>(scan_result));
       if (is_ok(expression)) {
         cout << Ok(expression)->as_string() << "\n";
@@ -69,10 +69,9 @@ Result<vector<Token>> run(string source) {
   return scanner->scan_tokens();
 }
 
-void print_tokens(vector<Token> *list) {
-  for (vector<Token>::iterator token = list->begin(); token != list->end();
-       ++token) {
-    cout << token->as_string() << "(" << token->literal << "), ";
+void print_tokens(vector<Token> *const list) {
+  for (Token token : *list) {
+    cout << token.as_string() << "(" << token.literal << "), ";
   }
 
   cout << "\n";

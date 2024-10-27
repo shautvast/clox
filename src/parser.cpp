@@ -9,7 +9,7 @@ Expression::~Expression() = default;
 
 // class Binary
 
-string Binary::as_string() {
+string Binary::as_string() const {
   return "(" + token_name(op->tokentype) + " " + left->as_string() + " " +
          right->as_string() + ")";
 }
@@ -21,7 +21,7 @@ Binary::~Binary() = default;
 
 // class Grouping
 
-string Grouping::as_string() { return "(" + expr->as_string() + ")"; }
+string Grouping::as_string() const { return "(" + expr->as_string() + ")"; }
 
 Grouping::Grouping(Expression *_expr) : expr(_expr){};
 
@@ -29,7 +29,7 @@ Grouping::~Grouping() = default;
 
 // class Unary
 
-string Unary::as_string() {
+string Unary::as_string() const {
   return token_name(op->tokentype) + right->as_string();
 }
 
@@ -39,7 +39,7 @@ Unary::Unary(Token *_operator, Expression *_right)
 Unary::~Unary() = default;
 
 // class Literal
-string Literal::as_string() {
+string Literal::as_string() const {
   string text;
   if (holds_alternative<string>(value)) {
     return "\"" + get<string>(value) + "\"";
