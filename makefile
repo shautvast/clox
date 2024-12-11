@@ -1,23 +1,27 @@
 TARGET := ./target
 SRC := ./src
-CC := clang++ -c -std=c++23 -Wall -Wextra -pedantic -Werror
+CC := clang -c -std=c17
+#-Wall -Wextra -pedantic -Werror
 
 SRCS := $(shell find $(SRC) -name '*.c')
 OBJS := $(SRCS:%=$(TARGET)/%.o)
 
-$(TARGET)/lox: $(TARGET)/lox.cpp.o $(TARGET)/parser.cpp.o $(TARGET)/scanner.cpp.o $(TARGET)/tokens.cpp.o $(TARGET)/parser.cpp.o
-	clang++ $(TARGET)/lox.cpp.o -L$(TARGET) -lscanner.cpp.o -ltokens.cpp.o -lparser.cpp.o -o $(TARGET)/lox
+$(TARGET)/lox: $(TARGET)/lox.c.o $(TARGET)/parser.c.o $(TARGET)/scanner.c.o $(TARGET)/tokens.c.o $(TARGET)/utils.c.o
+	clang $(TARGET)/lox.c.o -L$(TARGET) -lparser.c.o -ltokens.c.o -lscanner.c.o -lutils.c.o -o $(TARGET)/lox
 
-$(TARGET)/tokens.cpp.o: $(SRC)/tokens.cpp
+$(TARGET)/utils.c.o: $(SRC)/utils.c
 	$(CC) $< -o $@
 
-$(TARGET)/scanner.cpp.o: $(SRC)/scanner.cpp
+$(TARGET)/tokens.c.o: $(SRC)/tokens.c
 	$(CC) $< -o $@
 
-$(TARGET)/parser.cpp.o: $(SRC)/parser.cpp
+$(TARGET)/scanner.c.o: $(SRC)/scanner.c
 	$(CC) $< -o $@
 
-$(TARGET)/lox.cpp.o: $(SRC)/lox.cpp $(TARGET)
+$(TARGET)/parser.c.o: $(SRC)/parser.c
+	$(CC) $< -o $@
+
+$(TARGET)/lox.c.o: $(SRC)/lox.c $(TARGET)
 	$(CC) $< -o $@
 
 $(TARGET):
