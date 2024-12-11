@@ -1,3 +1,4 @@
+#include "interpreter.h"
 #include "parser.h"
 #include "scanner.h"
 #include "utils.h"
@@ -9,8 +10,11 @@
 int run_file(char *file);
 void run_prompt(void);
 void run(char *source);
+static VarMap *environment;
 
 int main(int argc, char *argv[]) {
+  environment = newVarMap(NULL);
+
   setvbuf(stdout, NULL, _IONBF, 0);
   if (argc > 2) {
     puts("Usage: lox [script]");
@@ -80,6 +84,7 @@ void run_prompt(void) {
 void run(char *source) {
   ScanResult scan_result = scan_tokens(source);
   // tokenlist_print(&scan_result.token_list);
-  ExpressionList list = parse(&scan_result.token_list);
-  exprlist_print(&list);
+  ExpressionList *list = parse(&scan_result.token_list);
+  // exprlist_print(list);
+  interpret(environment, list);
 }

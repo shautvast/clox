@@ -1,11 +1,12 @@
 #include "tokens.h"
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-Token *newToken() {
+Token *newToken(void) {
   Token *token = malloc(sizeof(Token));
   if (token == NULL) {
-    printf("can't allocate memory");
+    printf("can't allocate memory for Token");
     exit(1);
   }
   return token;
@@ -13,6 +14,10 @@ Token *newToken() {
 
 void tokenlist_init(TokenList *list) {
   list->tokens = malloc(sizeof(Token) * 32);
+  if (list->tokens == NULL) {
+    printf("Cannot allocate memory for TokenList");
+    exit(1);
+  }
   list->size = 0;
   list->capacity = 32;
 }
@@ -39,12 +44,7 @@ Token *tokenlist_last(TokenList *list) { return list->tokens[list->size - 1]; }
 void tokenlist_print(TokenList *tokenlist) {
   for (int i = 0; i < tokenlist->size; i++) {
     Token *token = tokenlist_get(tokenlist, i);
-    if (token->literal != NULL) {
-      printf("%s(x:%s,l:%s), ", token_name(token->type), token->lexeme,
-             (char *)token->literal);
-    } else {
-      printf("%s(l:%s)", token_name(token->type), token->lexeme);
-    }
+    printf("%s(%s)", token_name(token->type), token->lexeme);
   }
   printf("\n");
 }

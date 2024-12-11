@@ -1,5 +1,8 @@
 #ifndef TOKENS_H
 #define TOKENS_H
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 typedef enum {
   LEFT_PAREN,
@@ -58,10 +61,10 @@ static inline const char *token_name(TokenType type) {
   return tokens[type];
 }
 
-typedef struct {
+typedef struct Token {
   TokenType type;
   char *lexeme;
-  void *literal;
+  char *literal;
   int line;
 } Token;
 
@@ -71,7 +74,7 @@ typedef struct TokenList {
   int capacity;
 } TokenList;
 
-Token *newToken();
+Token *newToken(void);
 
 void tokenlist_init(TokenList *list);
 

@@ -109,6 +109,9 @@ static void scan_token(void) {
   case '-':
     add_token(MINUS);
     break;
+  case '*':
+    add_token(STAR);
+    break;
   case '!':
     add_token(match('=') ? BANG_EQUAL : BANG);
     break;

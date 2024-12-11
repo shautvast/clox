@@ -1,5 +1,4 @@
 #include "parser.h"
-#include "tokens.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,8 +6,6 @@
 
 bool is_at_end(void);
 Token *peek(void);
-size_t expr_toString(const Expression *expr, char *output, size_t outputSize,
-                     size_t offset);
 void expr_print(const Expression *expr);
 Expression *declaration(void);
 bool match1(TokenType t);
@@ -22,7 +19,7 @@ Expression *var_declaration(void);
 Expression *expression(void);
 Expression *statement(void);
 Expression *printStatement(void);
-ExpressionList block(void);
+ExpressionList *parse_block(void);
 Expression *expressionStatement(void);
 Expression *assignment(void);
 Expression *equality(void);
@@ -37,15 +34,14 @@ Token *consume(TokenType type, char *message);
 static TokenList *tokens;
 static int current;
 
-ExpressionList parse(TokenList *tokens_to_parse) {
-  ExpressionList statements;
-  exprlist_init(&statements);
+ExpressionList *parse(TokenList *tokens_to_parse) {
+  ExpressionList *statements = newExpressionList();
 
   tokens = tokens_to_parse;
   current = 0;
 
   while (!is_at_end()) {
-    exprlist_add(&statements, declaration());
+    exprlist_add(statements, declaration());
   }
   return statements;
 }
@@ -60,12 +56,12 @@ Expression *declaration(void) {
 
 Expression *var_declaration(void) {
   Token *name = consume(IDENTIFIER, "Expected a variable name");
-  Expression *initializer;
+  Expression *initializer = NULL;
   if (match1(EQUAL)) {
     initializer = expression();
   }
   consume(SEMICOLON, "Expected semicolon");
-  Expression *variableStatement = newExpression("VariableStatement");
+  Expression *variableStatement = newExpression("VariableStmt");
   variableStatement->name = name->lexeme;
   variableStatement->left = initializer;
   return variableStatement;
@@ -76,22 +72,20 @@ Expression *statement(void) {
     return printStatement();
   }
   if (match1(LEFT_BRACE)) {
-    ExpressionList block_contents = block();
     Expression *block = newExpression("Block");
-    block->value = &block_contents;
+
+    ExpressionList *block_statements = newExpressionList();
+
+    while (!check(RIGHT_BRACE) && !is_at_end()) {
+      exprlist_add(block_statements, declaration());
+    }
+    advance();
+
+    block->block = block_statements;
     return block;
   }
 
   return expressionStatement();
-}
-
-ExpressionList block(void) {
-  ExpressionList statements;
-  exprlist_init(&statements);
-  while (!check(RIGHT_BRACE) && !is_at_end()) {
-    exprlist_add(&statements, declaration());
-  }
-  return statements;
 }
 
 Expression *printStatement(void) {
@@ -106,7 +100,7 @@ Expression *expressionStatement(void) {
   Expression *value = expression();
   consume(SEMICOLON, "Expected semicolon");
   Expression *statement = newExpression("ExprStmt");
-  statement->value = &value;
+  statement->left = value;
   return statement;
 }
 
@@ -120,7 +114,7 @@ Expression *assignment(void) {
     if (strcmp(expr->type, "Variable") == 0) {
       Expression *assign = newExpression("AssignStmt");
       assign->name = expr->name;
-      assign->value = &value;
+      assign->left = value;
       return assign;
     }
     Expression *error = newExpression("Error");
@@ -201,13 +195,11 @@ Expression *unary(void) {
 Expression *primary(void) {
   Expression *r = newExpression("Literal");
   if (match1(FALSE)) {
-    r->name = "boolean";
-    r->value = "false";
+    r->value = newBoolean(false);
     return r;
   }
   if (match1(TRUE)) {
-    r->name = "boolean";
-    r->value = "true";
+    r->value = newBoolean(true);
     return r;
   }
 
@@ -219,25 +211,24 @@ Expression *primary(void) {
 
   if (check(NUMBER)) {
     advance();
-    r->name = "number";
-    r->value = previous()->literal;
+    r->value = newNumber(strtod(previous()->literal, NULL));
     return r;
   }
   if (check(STRING)) {
     advance();
-    r->name = "string";
-    r->value = previous()->literal;
+    r->value = newString(previous()->literal);
     return r;
   }
   if (match1(IDENTIFIER)) {
     Expression *var = newExpression("Variable");
-    r->name = previous()->lexeme;
+    var->name = previous()->lexeme;
     return var;
   }
   if (match1(LEFT_PAREN)) {
+    Expression *expr = expression();
     Expression *group = newExpression("Group");
     consume(RIGHT_PAREN, "Expect ')' after expression.");
-    r->left = group;
+    group->left = expr;
     return group;
   }
 
@@ -246,10 +237,11 @@ Expression *primary(void) {
 }
 
 Token *consume(TokenType type, char *message) {
+  // printf("%s==%s\n", token_name(type), token_name(peek()->type));
   if (check(type)) {
     return advance();
   }
-  printf("error\n");
+
   Token *t = newToken();
   t->type = ERROR;
   t->lexeme = message;
@@ -310,10 +302,21 @@ bool is_at_end(void) { return peek()->type == END_OF_FILE; }
 
 Token *peek(void) { return tokenlist_get(tokens, current); }
 
-void exprlist_init(ExpressionList *list) {
+ExpressionList *newExpressionList() {
+  ExpressionList *list = malloc(sizeof(ExpressionList));
+  if (list == NULL) {
+    printf("Cannot allocate memory for ExpressionList");
+    exit(1);
+  }
+
   list->expressions = malloc(sizeof(Expression) * 32);
+  if (list->expressions == NULL) {
+    printf("Cannot allocate memory for ExpressionList");
+    exit(1);
+  }
   list->size = 0;
   list->capacity = 32;
+  return list;
 }
 
 void exprlist_add(ExpressionList *list, Expression *value) {
@@ -322,8 +325,7 @@ void exprlist_add(ExpressionList *list, Expression *value) {
     list->expressions =
         realloc(list->expressions, sizeof(Expression) * list->capacity);
   }
-  list->expressions[list->size] = value;
-  list->size += 1;
+  list->expressions[list->size++] = value;
 }
 
 Expression *exprlist_get(ExpressionList *list, int index) {
@@ -359,14 +361,12 @@ void expr_print(const Expression *expr) {
   }
   if (expr->name != NULL) {
     printf(", name: %s", expr->name);
-    if (strcmp(expr->name, "string") == 0 ||
-        strcmp(expr->name, "number") == 0 ||
-        strcmp(expr->name, "boolean") == 0) {
-      printf(", value: %s", (char *)expr->value);
-    }
     if (strcmp(expr->name, "nil") == 0 && expr->value == NULL) {
       printf(", value: NULL");
     }
+  }
+  if (expr->value != NULL) {
+    printf(", value: %s", value_string(expr->value));
   }
   printf("]");
 }
@@ -379,5 +379,59 @@ Expression *newExpression(char *type) {
   e->name = NULL;
   e->operator= NULL;
   e->value = NULL;
+  e->block = NULL;
   return e;
+}
+
+Value *newString(char *string) {
+  Value *value = newValue();
+  value->type = STRINGTYPE;
+  value->value.string = string;
+  return value;
+}
+
+Value *newBoolean(bool boolean) {
+  Value *value = newValue();
+  value->type = BOOLEANTYPE;
+  value->value.boolean = boolean;
+  return value;
+}
+
+Value *newNumber(double number) {
+  Value *value = newValue();
+  value->type = NUMBERTYPE;
+  value->value.number = number;
+  return value;
+}
+
+Value *newValue(void) {
+  Value *value = malloc(sizeof(Value));
+  if (value == NULL) {
+    printf("can't allocate memory for Value");
+    exit(1);
+  }
+  return value;
+}
+
+char *d_to_s(double d) {
+  char *str = (char *)malloc(50);
+  if (str == NULL) {
+    puts("cannot allocate memory for string");
+    exit(1);
+  }
+  snprintf(str, sizeof(str), "%lf", d); //
+  return str;
+}
+
+const char *value_string(Value *v) {
+  switch (v->type) {
+  case STRINGTYPE:
+    return v->value.string;
+  case BOOLEANTYPE:
+    return v->value.boolean ? "true" : "false";
+  case NUMBERTYPE:
+    return d_to_s(v->value.number);
+  case EXPR:
+    return v->value.expr->type;
+  }
 }
